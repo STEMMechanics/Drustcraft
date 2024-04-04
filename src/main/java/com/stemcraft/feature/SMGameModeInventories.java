@@ -2,11 +2,14 @@ package com.stemcraft.feature;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+
+import com.stemcraft.STEMCraft;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -154,6 +157,13 @@ public class SMGameModeInventories extends SMFeature {
 
             this.SaveInventory(player, ctx.event.getFrom().getWorld().getName(), false, "Player Teleport");
             this.LoadLastInventory(player, player.getGameMode().toString(), ctx.event.getTo().getWorld().getName());
+        });
+
+        SMEvent.register(PlayerJoinEvent.class, (ctx) -> {
+            PlayerJoinEvent event = (PlayerJoinEvent) ctx.event;
+            Player player = event.getPlayer();
+
+            this.LoadLastInventory(player, player.getGameMode().toString(), player.getLocation().getWorld().getName());
         });
 
         return true;
