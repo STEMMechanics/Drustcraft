@@ -868,6 +868,10 @@ public class SMCommon {
      * @return The relative time string.
      */
     public static String convertSecondsToRelative(long totalSeconds) {
+        return convertSecondsToRelative(totalSeconds, false);
+    }
+
+    public static String convertSecondsToRelative(long totalSeconds, boolean shortFormat) {
         long days = totalSeconds / 86400;
         totalSeconds %= 86400;
         long hours = totalSeconds / 3600;
@@ -878,26 +882,42 @@ public class SMCommon {
 
         StringBuilder relativeTime = new StringBuilder();
         if (days > 0) {
-            relativeTime.append(days).append(" day");
-            if (days > 1)
-                relativeTime.append("s");
-            relativeTime.append(", ");
+            if(shortFormat) {
+                relativeTime.append(days).append("d ");
+            } else {
+                relativeTime.append(days).append(" day");
+                if (days > 1)
+                    relativeTime.append("s");
+                relativeTime.append(", ");
+            }
         }
         if (hours > 0) {
-            relativeTime.append(hours).append(" hour");
-            if (hours > 1)
-                relativeTime.append("s");
-            relativeTime.append(", ");
+            if(shortFormat) {
+                relativeTime.append(hours).append("h ");
+            } else {
+                relativeTime.append(hours).append(" hour");
+                if (hours > 1)
+                    relativeTime.append("s");
+                relativeTime.append(", ");
+            }
         }
         if (minutes > 0) {
-            relativeTime.append(minutes).append(" minute");
-            if (minutes > 1)
-                relativeTime.append("s");
-            relativeTime.append(", ");
+            if(shortFormat) {
+                relativeTime.append(minutes).append("m ");
+            } else {
+                relativeTime.append(minutes).append(" minute");
+                if (minutes > 1)
+                    relativeTime.append("s");
+                relativeTime.append(", ");
+            }
         }
-        relativeTime.append(seconds).append(" second");
-        if (seconds != 1)
-            relativeTime.append("s");
+        if(shortFormat) {
+            relativeTime.append(seconds).append("s");
+        } else {
+            relativeTime.append(seconds).append(" second");
+            if (seconds != 1)
+                relativeTime.append("s");
+        }
 
         return relativeTime.toString();
     }
@@ -1069,5 +1089,26 @@ public class SMCommon {
         }
 
         return false; // No match found
+    }
+
+    public static boolean worldExists(String raceWorldName) {
+        return Bukkit.getWorld(raceWorldName) != null;
+    }
+
+    public static Location stringToLocation(String s) {
+        String[] parts = s.split(",");
+        if (parts.length == 4) {
+            World world = Bukkit.getWorld(parts[0]);
+            double x = Double.parseDouble(parts[1]);
+            double y = Double.parseDouble(parts[2]);
+            double z = Double.parseDouble(parts[3]);
+            return new Location(world, x, y, z);
+        }
+
+        return null;
+    }
+
+    public static String locationToString(Location location) {
+        return location.getWorld().getName() + "," + location.getX() + "," + location.getY() + "," + location.getZ();
     }
 }
