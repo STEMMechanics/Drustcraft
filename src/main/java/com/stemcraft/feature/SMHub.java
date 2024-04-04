@@ -49,7 +49,9 @@ public class SMHub extends SMFeature {
             }
 
             if (!player.hasPermission("stemcraft.hub.override")) {
-                teleportToHub(player);
+                STEMCraft.runLater(() -> {
+                    teleportToHub(player);
+                });
             }
         });
 
