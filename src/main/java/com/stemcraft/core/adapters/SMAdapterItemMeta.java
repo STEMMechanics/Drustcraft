@@ -43,13 +43,16 @@ public class SMAdapterItemMeta implements SMJsonAdapter, JsonSerializer<ItemMeta
             deserialize.put(DISPLAY_MAP_COLOR_KEY, mapColor);
         
         } else if (metaType.equals("POTION")) {
-            List<PotionEffect> potionEffects = SMAdapterItemMeta.deserializePotionEffects(
-                    (List<Map<String, Object>>) deserialize.get(CUSTOM_EFFECTS_KEY));
-            Color customColor = Color.deserialize((Map<String, Object>)deserialize.get(CUSTOM_COLOR_KEY));
-            
-            deserialize.put(CUSTOM_EFFECTS_KEY, potionEffects);
-            deserialize.put(CUSTOM_COLOR_KEY, customColor);
-            
+            if(deserialize.containsKey(CUSTOM_EFFECTS_KEY)) {
+                List<PotionEffect> potionEffects = SMAdapterItemMeta.deserializePotionEffects(
+                        (List<Map<String, Object>>) deserialize.get(CUSTOM_EFFECTS_KEY));
+                deserialize.put(CUSTOM_EFFECTS_KEY, potionEffects);
+            }
+
+            if(deserialize.containsKey(CUSTOM_COLOR_KEY)) {
+                Color customColor = Color.deserialize((Map<String, Object>) deserialize.get(CUSTOM_COLOR_KEY));
+                deserialize.put(CUSTOM_COLOR_KEY, customColor);
+            }
         } else if (metaType.equalsIgnoreCase("FIREWORK")) {
             
             List<FireworkEffect> fireworkEffects = SMAdapterItemMeta.deserializeFireworkEffects(
@@ -65,10 +68,12 @@ public class SMAdapterItemMeta implements SMJsonAdapter, JsonSerializer<ItemMeta
             deserialize.put(FIREWORK_EFFECT_KEY, fireworkEffect);
 
         } else if (metaType.equalsIgnoreCase("LEATHER_ARMOR") || metaType.equalsIgnoreCase("COLORABLE_ARMOR")) {
-            Color color = SMAdapterItemMeta.deserializeRawColor(
-                    (Map<String, Object>) deserialize.get(COLOR_KEY));
-            
-            deserialize.put(COLOR_KEY, color);
+            if(deserialize.containsKey(COLOR_KEY)) {
+                Color color = SMAdapterItemMeta.deserializeRawColor(
+                        (Map<String, Object>) deserialize.get(COLOR_KEY));
+
+                deserialize.put(COLOR_KEY, color);
+            }
         }
 
         return (ItemMeta) ConfigurationSerialization.deserializeObject(deserialize, ConfigurationSerialization.getClassByAlias("ItemMeta"));
