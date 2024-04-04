@@ -99,7 +99,10 @@ public class SMCommandContext {
      */
     public void checkNotConsole() {
         if (!(sender instanceof Player)) {
-            throwCommandException(SMLocale.get(this.sender, "CMD_ONLY_PLAYERS"));
+            throwCommandException(
+                    SMReplacer.replaceVariables(
+                            SMLocale.get(this.sender, "CMD_ONLY_PLAYERS"),
+                            "label", command.getLabel()));
         }
     }
 
