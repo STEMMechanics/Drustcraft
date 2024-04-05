@@ -3,10 +3,13 @@ package com.stemcraft.feature;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.stemcraft.core.config.SMConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -88,7 +91,7 @@ public class SMWaystones extends SMFeature {
             if (clickedBlock == null) {
                 return;
             }
-    
+
             STEMCraft.runOnce("waystone-" + player.getName(), 5L, () -> {
                 if(player.getGameMode() == GameMode.SURVIVAL && ctx.event.getAction() == Action.RIGHT_CLICK_BLOCK) {
                     if (clickedBlock.getType() == Material.LODESTONE && (player.getInventory().getItemInMainHand() == null || player.getInventory().getItemInMainHand().getType().equals(Material.AIR))) {
@@ -139,7 +142,7 @@ public class SMWaystones extends SMFeature {
      */
     private List<Location> getPistonBlockLocations(List<Block> blocks, BlockFace direction) {
         List<Location> extendedLocations = new ArrayList<>();
-        
+
         for (Block block : blocks) {
             extendedLocations.add(block.getLocation());
 
@@ -204,7 +207,7 @@ public class SMWaystones extends SMFeature {
      */
     private void removeWaystones(List<Location> locations) throws SQLException {
         if (locations.isEmpty()) return;
-    
+
         for (Location location : locations) {
             Block waystone = isValidWaystone(location.getBlock());
             if(waystone != null) {
@@ -269,22 +272,37 @@ public class SMWaystones extends SMFeature {
     }
 
     public boolean checkWaystoneExists(Location location) {
+        long cWE = 0; // needed otherwise java throws a nanny
+
         try {
+            if (SMConfig.main().getBoolean("waystones.debug.checkWaystoneExistsTiming")) {
+                cWE = Instant.now().toEpochMilli();
+            }
+
             String query = "SELECT COUNT(*) FROM waystones WHERE x = ? AND y = ? AND z = ? AND world = ?";
             PreparedStatement statement = SMDatabase.prepareStatement(query);
             statement.setInt(1, location.getBlockX());
             statement.setInt(2, location.getBlockY());
             statement.setInt(3, location.getBlockZ());
             statement.setString(4, location.getWorld().getName());
-            
+
             // Execute the query and retrieve the result
             ResultSet resultSet = statement.executeQuery();
+
+            if (SMConfig.main().getBoolean("waystones.debug.checkWaystoneExistsTiming")) {
+                STEMCraft.info("checkWaystoneExists SQL Query took " + (Instant.now().toEpochMilli() - cWE) + "ms.");
+            }
+
             if (resultSet.next()) {
                 int count = resultSet.getInt(1);
                 return count > 0; // If count > 0, location is registered; otherwise, it is not
             }
         } catch (SQLException e) {
             e.printStackTrace();
+
+            if (SMConfig.main().getBoolean("waystones.debug.checkWaystoneExistsTiming")) {
+                STEMCraft.warning("checkWaystoneExists SQL Query took " + (Instant.now().toEpochMilli() - cWE) + "ms yet failed.");
+            }
         }
         
         return false; // Default return value if there's an error or no result found
