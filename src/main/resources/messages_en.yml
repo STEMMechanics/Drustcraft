@@ -72,7 +72,7 @@ SEEN_RESULT: "{player} last loggin in on {last-login}"
 
 GMI_FAILED: "The server failed updating your inventory"
 
-TPLOC_USAGE:"Usage: /tploc <name>"
+TPLOC_USAGE: "Usage: /tploc <name>"
 TPLOC_NOT_EXIST: "Teleport location '{name}' does not exist"
 
 TPLOC_SAVE_SUCCESSFUL: "Location saved successfully"
@@ -88,6 +88,7 @@ RESTRICT_CREATIVE_NO_PLACE: "You cannot place this block in creative mode"
 
 NO_BACK_LOCATION: "There is no location to teleport back to {player}"
 
+MAINTENANCE_USAGE: "Usage: /maintenance <enable|disable>"
 MAINTENANCE_SET_TO: "Server maintenance set to {mode}"
 MAINTENANCE_KICK: "The server is currently undergoing maintenance"
 MAINTENANCE_MOTD: "&6Server under maintenance"
