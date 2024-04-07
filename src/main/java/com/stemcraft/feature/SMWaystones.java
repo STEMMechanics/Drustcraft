@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.stemcraft.core.*;
 import com.stemcraft.core.config.SMConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -27,10 +28,6 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import com.stemcraft.STEMCraft;
-import com.stemcraft.core.SMCommon;
-import com.stemcraft.core.SMDatabase;
-import com.stemcraft.core.SMFeature;
-import com.stemcraft.core.SMMessenger;
 import com.stemcraft.core.event.SMEvent;
 
 public class SMWaystones extends SMFeature {
@@ -275,7 +272,7 @@ public class SMWaystones extends SMFeature {
         long cWE = 0; // needed otherwise java throws a nanny
 
         try {
-            if (SMConfig.main().getBoolean("waystones.debug.checkWaystoneExistsTiming")) {
+            if (SMDebugger.isDebugging("waystones")) {
                 cWE = Instant.now().toEpochMilli();
             }
 
@@ -289,8 +286,8 @@ public class SMWaystones extends SMFeature {
             // Execute the query and retrieve the result
             ResultSet resultSet = statement.executeQuery();
 
-            if (SMConfig.main().getBoolean("waystones.debug.checkWaystoneExistsTiming")) {
-                STEMCraft.info("checkWaystoneExists SQL Query took " + (Instant.now().toEpochMilli() - cWE) + "ms.");
+            if (SMDebugger.isDebugging("waystones")) {
+                SMDebugger.debug("waystones", "checkWaystoneExists SQL Query (\"", statement.toString(), "\") took ", String.valueOf((Instant.now().toEpochMilli() - cWE)), "ms.");
             }
 
             if (resultSet.next()) {
@@ -300,8 +297,8 @@ public class SMWaystones extends SMFeature {
         } catch (SQLException e) {
             e.printStackTrace();
 
-            if (SMConfig.main().getBoolean("waystones.debug.checkWaystoneExistsTiming")) {
-                STEMCraft.warning("checkWaystoneExists SQL Query took " + (Instant.now().toEpochMilli() - cWE) + "ms yet failed.");
+            if (SMDebugger.isDebugging("waystones")) {
+                SMDebugger.debug("waystones", "checkWaystoneExists SQL Query (unknown) took ", String.valueOf((Instant.now().toEpochMilli() - cWE)), "ms yet failed.");
             }
         }
         
