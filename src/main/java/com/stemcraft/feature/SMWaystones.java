@@ -50,7 +50,8 @@ public class SMWaystones extends SMFeature {
                 "under_block TEXT NOT NULL)").executeUpdate();
         });
 
-        SMConfig.main().set("waystones.worlds", new ArrayList<String>(), "Whitelist for waystone dimensions.");
+        if (!SMConfig.main().contains("waystones.worlds"))
+            SMConfig.main().set("waystones.worlds", new ArrayList<String>(), "Whitelist for waystone dimensions.");
 
         SMEvent.register(BlockBreakEvent.class, ctx -> {
             Block block = ctx.event.getBlock();
