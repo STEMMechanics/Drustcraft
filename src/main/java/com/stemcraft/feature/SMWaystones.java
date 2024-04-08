@@ -50,7 +50,7 @@ public class SMWaystones extends SMFeature {
                 "under_block TEXT NOT NULL)").executeUpdate();
         });
 
-        SMConfig.main().set("waystones.allowedDimensions", new ArrayList<String>(), "Whitelist for waystone dimensions.");
+        SMConfig.main().set("waystones.worlds", new ArrayList<String>(), "Whitelist for waystone dimensions.");
 
         SMEvent.register(BlockBreakEvent.class, ctx -> {
             Block block = ctx.event.getBlock();
@@ -232,12 +232,12 @@ public class SMWaystones extends SMFeature {
     private void updateWaystone(List<Location> locations) throws SQLException {
         STEMCraft.runLater(5, () -> {
             try {
-                List<String> allowedDimensionStringList = SMConfig.main().getStringList("waystones.allowedDimensions");
-                boolean allowedDimensionStringListIsNull = allowedDimensionStringList == null;
+                List<String> worldstringList = SMConfig.main().getStringList("waystones.worlds");
+                boolean worldstringListIsNull = worldstringList == null;
 
                 for(Location location : locations) {
-                    if (!allowedDimensionStringListIsNull)
-                        if (!allowedDimensionStringList.contains(Objects.requireNonNull(location.getWorld()).getName()))
+                    if (!worldstringListIsNull)
+                        if (!worldstringList.contains(Objects.requireNonNull(location.getWorld()).getName()))
                             return;
 
                     updateWaystoneForLocation(location.add(0f, 1f, 0f));
