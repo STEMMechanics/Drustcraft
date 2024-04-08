@@ -199,3 +199,6 @@ JAILED_SUCCESS: "{player} has been jailed"
 UNJAILED_SUCCESS: "{player} has been released from jailed"
 JAILED_NOT_SET: "A jail has not been set"
 JAILED_UPDATED: "The jail location has been updated"
+
+TPWORLD_USAGE: "Usage: /tpworld <player> <world>"
+TPWORLD_NOT_FOUND: "The world {world} was not found"
