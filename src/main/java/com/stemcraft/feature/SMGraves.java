@@ -12,9 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.*;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
-import org.bukkit.block.data.Orientable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.Inventory;
@@ -51,7 +49,7 @@ public class SMGraves extends SMFeature {
                 Player player = ctx.event.getEntity();
 
                 if (player.getGameMode() != GameMode.SURVIVAL || !worlds.contains(player.getLocation().getWorld())) {
-                    STEMCraft.info("Grave skipped as player " + player.getName() + " is not in survival game mode (" + player.getGameMode().toString() + "), or is not in the list of worlds for graves");
+                    STEMCraft.info("Grave skipped as player " + player.getName() + " is not in survival game mode (" + player.getGameMode() + "), or is not in the list of worlds for graves (" + player.getLocation().getWorld().getName() + ")");
                     return;
                 }
 
@@ -139,7 +137,7 @@ public class SMGraves extends SMFeature {
                         }
                     }
 
-                    STEMCraft.info("Placed grave chest at " + graveLocation.toString() + " for " + player.getName() + " with " + barrelInventory.getSize() + " items");
+                    STEMCraft.info("Placed grave chest at " + graveLocation + " for " + player.getName() + " with " + barrelInventory.getSize() + " items");
                 }
 
                 ctx.event.getDrops().clear();
