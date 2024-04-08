@@ -6,7 +6,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import com.stemcraft.core.config.SMConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -46,6 +49,8 @@ public class SMWaystones extends SMFeature {
                 "z INT NOT NULL," +
                 "under_block TEXT NOT NULL)").executeUpdate();
         });
+
+        SMConfig.main().set("waystones.allowedDimensions", new ArrayList<String>(), "Whitelist for waystone dimensions.");
 
         SMEvent.register(BlockBreakEvent.class, ctx -> {
             Block block = ctx.event.getBlock();
@@ -227,7 +232,14 @@ public class SMWaystones extends SMFeature {
     private void updateWaystone(List<Location> locations) throws SQLException {
         STEMCraft.runLater(5, () -> {
             try {
+                List<String> allowedDimensionStringList = SMConfig.main().getStringList("waystones.allowedDimensions");
+                boolean allowedDimensionStringListIsNull = allowedDimensionStringList == null;
+
                 for(Location location : locations) {
+                    if (!allowedDimensionStringListIsNull)
+                        if (!allowedDimensionStringList.contains(Objects.requireNonNull(location.getWorld()).getName()))
+                            return;
+
                     updateWaystoneForLocation(location.add(0f, 1f, 0f));
 
                     updateWaystoneForLocation(location);
