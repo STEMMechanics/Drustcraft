@@ -163,7 +163,7 @@ public class SMGameModeInventories extends SMFeature {
             PlayerJoinEvent event = (PlayerJoinEvent) ctx.event;
             Player player = event.getPlayer();
 
-            this.LoadLastInventory(player, player.getGameMode().toString(), player.getLocation().getWorld().getName());
+//            this.LoadLastInventory(player, player.getGameMode().toString(), player.getLocation().getWorld().getName());
         });
 
         return true;
