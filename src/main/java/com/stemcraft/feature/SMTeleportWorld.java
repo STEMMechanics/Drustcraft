@@ -8,6 +8,7 @@ import com.stemcraft.core.command.SMCommand;
 import com.stemcraft.core.event.SMEvent;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 public class SMTeleportWorld extends SMFeature {
@@ -20,13 +21,14 @@ public class SMTeleportWorld extends SMFeature {
         SMEvent.register(PlayerTeleportEvent.class, ctx -> {
             Player player = ctx.event.getPlayer();
             Location from = ctx.event.getFrom();
-            String key = player.getUniqueId() + "_" + from.getWorld().getName();
-
-            // Remove "_nether" or "_the_end" from the key if present
-            key = key.replaceFirst("(_nether|_the_end)$", "");
-
-            SMPersistent.set(this, key, from);
+            this.saveLastLocation(player, from);
         });
+
+        SMEvent.register(PlayerQuitEvent.class, ctx -> {
+            Player player = ctx.event.getPlayer();
+            this.saveLastLocation(player, player.getLocation());
+        });
+
 
         new SMCommand("tpworld")
             .alias("teleportworld")
@@ -52,5 +54,14 @@ public class SMTeleportWorld extends SMFeature {
             .register();
 
         return true;
+    }
+
+    protected void saveLastLocation(Player player, Location location) {
+        String key = player.getUniqueId() + "_" + location.getWorld().getName();
+
+        // Remove "_nether" or "_the_end" from the key if present
+        key = key.replaceFirst("(_nether|_the_end)$", "");
+
+        SMPersistent.set(this, key, location);
     }
 }
