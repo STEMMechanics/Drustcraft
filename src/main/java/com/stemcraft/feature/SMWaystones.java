@@ -213,32 +213,24 @@ public class SMWaystones extends SMFeature {
         }
     }
 
+    private void updateWaystoneForLocation(Location location) throws SQLException {
+        Block waystone = isValidWaystone(location.getBlock());
+        boolean exists = checkWaystoneExists(location);
+
+        if (exists && (waystone == null || !waystone.getLocation().equals(location))) {
+            removeWaystone(location.getBlock());
+        } else if (!exists && waystone != null && waystone.getLocation().equals(location)) {
+            insertWaystone(waystone);
+        }
+    }
+
     private void updateWaystone(List<Location> locations) throws SQLException {
         STEMCraft.runLater(5, () -> {
             try {
                 for(Location location : locations) {
-                    {
-                        Location above = location.add(0f, 1f, 0f);
-                        Block waystone = isValidWaystone(above.getBlock());
-                        Boolean exists = checkWaystoneExists(above);
+                    updateWaystoneForLocation(location.add(0f, 1f, 0f));
 
-                        if (exists && (waystone == null || !waystone.getLocation().equals(above))) {
-                            removeWaystone(above.getBlock());
-                        } else if (!exists && waystone != null && waystone.getLocation().equals(above)) {
-                            insertWaystone(waystone);
-                        }
-                    }
-
-                    {
-                        Block waystone = isValidWaystone(location.getBlock());
-                        Boolean exists = checkWaystoneExists(location);
-
-                        if (exists && (waystone == null || !waystone.getLocation().equals(location))) {
-                            removeWaystone(location.getBlock());
-                        } else if (!exists && waystone != null && waystone.getLocation().equals(location)) {
-                            insertWaystone(waystone);
-                        }
-                    }
+                    updateWaystoneForLocation(location);
                 }
             } catch(Exception e) {
                 e.printStackTrace();
