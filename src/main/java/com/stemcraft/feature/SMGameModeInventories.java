@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -164,6 +165,12 @@ public class SMGameModeInventories extends SMFeature {
             Player player = event.getPlayer();
 
 //            this.LoadLastInventory(player, player.getGameMode().toString(), player.getLocation().getWorld().getName());
+        });
+
+        SMEvent.register(PlayerQuitEvent.class, ctx -> {
+            Player player = ctx.event.getPlayer();
+
+            this.SaveInventory(player, player.getLocation().getWorld().getName(), false, "Player Quit");
         });
 
         return true;
