@@ -6,7 +6,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import com.stemcraft.core.config.SMConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -32,6 +35,7 @@ import com.stemcraft.core.event.SMEvent;
 
 public class SMWaystones extends SMFeature {
     private List<String> waystoneTypes = Arrays.asList("GOLD_BLOCK", "EMERALD_BLOCK", "DIAMOND_BLOCK");
+    private List<World> worlds = new ArrayList<>();
 
     @Override
     protected Boolean onEnable() {
@@ -46,6 +50,18 @@ public class SMWaystones extends SMFeature {
                 "z INT NOT NULL," +
                 "under_block TEXT NOT NULL)").executeUpdate();
         });
+
+        if (!SMConfig.main().contains("waystones.worlds"))
+            SMConfig.main().set("waystones.worlds", new ArrayList<String>(), "Whitelist for waystone worlds");
+        else {
+            List<String> worldsList = SMConfig.main().getStringList("waystones.worlds");
+            worldsList.forEach(worldName -> {
+                World world = Bukkit.getServer().getWorld(worldName);
+                if (world != null) {
+                    worlds.add(world);
+                }
+            });
+        }
 
         SMEvent.register(BlockBreakEvent.class, ctx -> {
             Block block = ctx.event.getBlock();
@@ -213,31 +229,27 @@ public class SMWaystones extends SMFeature {
         }
     }
 
+    private void updateWaystoneForLocation(Location location) throws SQLException {
+        Block waystone = isValidWaystone(location.getBlock());
+        boolean exists = checkWaystoneExists(location);
+
+        if (exists && (waystone == null || !waystone.getLocation().equals(location))) {
+            removeWaystone(location.getBlock());
+        } else if (!exists && waystone != null && waystone.getLocation().equals(location)) {
+            insertWaystone(waystone);
+        }
+    }
+
     private void updateWaystone(List<Location> locations) throws SQLException {
         STEMCraft.runLater(5, () -> {
             try {
-
                 for(Location location : locations) {
-                    Location above = location.add(0f, 1f, 0f);
-                    Block waystone = isValidWaystone(above.getBlock());
-                    Boolean exists = checkWaystoneExists(above);
+                    if (!worlds.contains(Objects.requireNonNull(location.getWorld())))
+                        return;
 
-                    if(exists && (waystone == null || !waystone.getLocation().equals(above))) {
-                        removeWaystone(above.getBlock());
-                    } else if(!exists && waystone != null && waystone.getLocation().equals(above)) {
-                        insertWaystone(waystone);
-                    }
-                }
+                    updateWaystoneForLocation(location.add(0f, 1f, 0f));
 
-                for(Location location : locations) {
-                    Block waystone = isValidWaystone(location.getBlock());
-                    Boolean exists = checkWaystoneExists(location);
-
-                    if(exists && (waystone == null || !waystone.getLocation().equals(location))) {
-                        removeWaystone(location.getBlock());
-                    } else if(!exists && waystone != null && waystone.getLocation().equals(location)) {
-                        insertWaystone(waystone);
-                    }
+                    updateWaystoneForLocation(location);
                 }
             } catch(Exception e) {
                 e.printStackTrace();
