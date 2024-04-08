@@ -216,27 +216,28 @@ public class SMWaystones extends SMFeature {
     private void updateWaystone(List<Location> locations) throws SQLException {
         STEMCraft.runLater(5, () -> {
             try {
-
                 for(Location location : locations) {
-                    Location above = location.add(0f, 1f, 0f);
-                    Block waystone = isValidWaystone(above.getBlock());
-                    Boolean exists = checkWaystoneExists(above);
+                    {
+                        Location above = location.add(0f, 1f, 0f);
+                        Block waystone = isValidWaystone(above.getBlock());
+                        Boolean exists = checkWaystoneExists(above);
 
-                    if(exists && (waystone == null || !waystone.getLocation().equals(above))) {
-                        removeWaystone(above.getBlock());
-                    } else if(!exists && waystone != null && waystone.getLocation().equals(above)) {
-                        insertWaystone(waystone);
+                        if (exists && (waystone == null || !waystone.getLocation().equals(above))) {
+                            removeWaystone(above.getBlock());
+                        } else if (!exists && waystone != null && waystone.getLocation().equals(above)) {
+                            insertWaystone(waystone);
+                        }
                     }
-                }
 
-                for(Location location : locations) {
-                    Block waystone = isValidWaystone(location.getBlock());
-                    Boolean exists = checkWaystoneExists(location);
+                    {
+                        Block waystone = isValidWaystone(location.getBlock());
+                        Boolean exists = checkWaystoneExists(location);
 
-                    if(exists && (waystone == null || !waystone.getLocation().equals(location))) {
-                        removeWaystone(location.getBlock());
-                    } else if(!exists && waystone != null && waystone.getLocation().equals(location)) {
-                        insertWaystone(waystone);
+                        if (exists && (waystone == null || !waystone.getLocation().equals(location))) {
+                            removeWaystone(location.getBlock());
+                        } else if (!exists && waystone != null && waystone.getLocation().equals(location)) {
+                            insertWaystone(waystone);
+                        }
                     }
                 }
             } catch(Exception e) {
