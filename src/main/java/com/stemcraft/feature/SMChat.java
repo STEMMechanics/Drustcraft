@@ -264,7 +264,7 @@ public class SMChat extends SMFeature {
                 } else {
                     pages.set(i, updateBindings(page));
                 }
-            } ;
+            }
 
             meta.setPages(pages);
             ctx.event.setNewBookMeta(meta);
