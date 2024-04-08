@@ -54,7 +54,7 @@ public class SMWaystones extends SMFeature {
         if (!SMConfig.main().contains("waystones.worlds"))
             SMConfig.main().set("waystones.worlds", new ArrayList<String>(), "Whitelist for waystone worlds");
         else {
-            List<String> worldsList = SMConfig.main().getStringList("graves.worlds");
+            List<String> worldsList = SMConfig.main().getStringList("waystones.worlds");
             worldsList.forEach(worldName -> {
                 World world = Bukkit.getServer().getWorld(worldName);
                 if (world != null) {
