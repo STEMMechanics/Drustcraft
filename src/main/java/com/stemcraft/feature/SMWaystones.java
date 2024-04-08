@@ -35,6 +35,7 @@ import com.stemcraft.core.event.SMEvent;
 
 public class SMWaystones extends SMFeature {
     private List<String> waystoneTypes = Arrays.asList("GOLD_BLOCK", "EMERALD_BLOCK", "DIAMOND_BLOCK");
+    private List<World> worlds = new ArrayList<>();
 
     @Override
     protected Boolean onEnable() {
@@ -52,6 +53,15 @@ public class SMWaystones extends SMFeature {
 
         if (!SMConfig.main().contains("waystones.worlds"))
             SMConfig.main().set("waystones.worlds", new ArrayList<String>(), "Whitelist for waystone dimensions.");
+        else {
+            List<String> worldsList = SMConfig.main().getStringList("graves.worlds");
+            worldsList.forEach(worldName -> {
+                World world = Bukkit.getServer().getWorld(worldName);
+                if (world != null) {
+                    worlds.add(world);
+                }
+            });
+        }
 
         SMEvent.register(BlockBreakEvent.class, ctx -> {
             Block block = ctx.event.getBlock();
@@ -233,13 +243,9 @@ public class SMWaystones extends SMFeature {
     private void updateWaystone(List<Location> locations) throws SQLException {
         STEMCraft.runLater(5, () -> {
             try {
-                List<String> worldstringList = SMConfig.main().getStringList("waystones.worlds");
-                boolean worldstringListIsNull = worldstringList == null;
-
                 for(Location location : locations) {
-                    if (!worldstringListIsNull)
-                        if (!worldstringList.contains(Objects.requireNonNull(location.getWorld()).getName()))
-                            return;
+                    if (!worlds.contains(Objects.requireNonNull(location.getWorld())))
+                        return;
 
                     updateWaystoneForLocation(location.add(0f, 1f, 0f));
 
