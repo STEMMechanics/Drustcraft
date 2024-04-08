@@ -52,7 +52,7 @@ public class SMWaystones extends SMFeature {
         });
 
         if (!SMConfig.main().contains("waystones.worlds"))
-            SMConfig.main().set("waystones.worlds", new ArrayList<String>(), "Whitelist for waystone dimensions.");
+            SMConfig.main().set("waystones.worlds", new ArrayList<String>(), "Whitelist for waystone worlds");
         else {
             List<String> worldsList = SMConfig.main().getStringList("graves.worlds");
             worldsList.forEach(worldName -> {
