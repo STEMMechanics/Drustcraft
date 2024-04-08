@@ -41,6 +41,7 @@ public class SMGraves extends SMFeature {
         worldsList.forEach(worldName -> {
             World world = Bukkit.getServer().getWorld(worldName);
             if (world != null) {
+                STEMCraft.info("Adding world " + worldName + " to the list of worlds for graves");
                 worlds.add(world);
             }
         });
@@ -50,6 +51,7 @@ public class SMGraves extends SMFeature {
                 Player player = ctx.event.getEntity();
 
                 if (player.getGameMode() != GameMode.SURVIVAL || !worlds.contains(player.getLocation().getWorld())) {
+                    STEMCraft.info("Grave skipped as player " + player.getName() + " is not in survival game mode (" + player.getGameMode().toString() + "), or is not in the list of worlds for graves");
                     return;
                 }
 
@@ -136,6 +138,8 @@ public class SMGraves extends SMFeature {
                             break;
                         }
                     }
+
+                    STEMCraft.info("Placed grave chest at " + graveLocation.toString() + " for " + player.getName() + " with " + barrelInventory.getSize() + " items");
                 }
 
                 ctx.event.getDrops().clear();
