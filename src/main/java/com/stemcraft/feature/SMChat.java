@@ -39,12 +39,11 @@ public class SMChat extends SMFeature {
     /**
      * The Chat Filter action data
      */
-    private class SMChatFilterAction {
-        @Getter
-        private String action;
+    @Getter
+    private static class SMChatFilterAction {
+        private final String action;
 
-        @Getter
-        private String meta;
+        private final String meta;
 
         /** Constuctor */
         SMChatFilterAction(String action) {
@@ -57,18 +56,15 @@ public class SMChat extends SMFeature {
     /**
      * Chat filter data
      */
+    @Getter
     private class SMChatFilter {
-        @Getter
-        private String id;
+        private final String id;
 
-        @Getter
-        private String label;
+        private final String label;
 
-        @Getter
-        private SMChatFilterAction action;
+        private final SMChatFilterAction action;
 
-        @Getter
-        private List<String> list;
+        private final List<String> list;
 
         /**
          * Constructor.
@@ -136,7 +132,7 @@ public class SMChat extends SMFeature {
     private SMConfigFile chatFilterConfig = null;
 
     /** The keyword filter list */
-    private ArrayList<SMChatFilter> filterList = new ArrayList<>();
+    private final ArrayList<SMChatFilter> filterList = new ArrayList<>();
 
     /** Player return message tracking */
     private final HashMap<UUID, UUID> lastTellMessageFrom = new HashMap<>();
@@ -166,7 +162,7 @@ public class SMChat extends SMFeature {
             .replace(MESSAGE_PLACEHOLDER, "%2$s"));
 
 
-        /** Load Chat Filtering */
+        /* Load Chat Filtering */
         chatFilterConfig = SMConfig.getOrLoadConfig("chat.yml");
         if (chatFilterConfig != null) {
             List<String> filterListIds = chatFilterConfig.getKeys("chat.filter");
@@ -211,7 +207,7 @@ public class SMChat extends SMFeature {
             ctx.event.setFormat(updateBindings(format));
         });
 
-        /** Event Chat - Filter */
+        /* Event Chat - Filter */
         SMEvent.register(AsyncPlayerChatEvent.class, ctx -> {
             if (playerMuted(ctx.event.getPlayer())) {
                 ctx.event.setCancelled(true);
@@ -227,7 +223,7 @@ public class SMChat extends SMFeature {
             ctx.event.setMessage(updateBindings(message));
         });
 
-        /** Event Command Preprocess - Filter */
+        /* Event Command Preprocess - Filter */
         SMEvent.register(PlayerCommandPreprocessEvent.class, ctx -> {
             String message = ctx.event.getMessage();
 
@@ -240,7 +236,7 @@ public class SMChat extends SMFeature {
             ctx.event.setMessage(updateBindings(message));
         });
 
-        /** Event Sign Change - Filter */
+        /* Event Sign Change - Filter */
         SMEvent.register(SignChangeEvent.class, ctx -> {
             for (int i = 0; i < 4; i++) {
                 String line = ctx.event.getLine(i);
@@ -254,7 +250,7 @@ public class SMChat extends SMFeature {
             }
         });
 
-        /** Event Player Edit Book - Filter */
+        /* Event Player Edit Book - Filter */
         SMEvent.register(PlayerEditBookEvent.class, ctx -> {
             BookMeta meta = ctx.event.getNewBookMeta();
             List<String> pages = new ArrayList<>(meta.getPages());
@@ -274,7 +270,7 @@ public class SMChat extends SMFeature {
             ctx.event.setNewBookMeta(meta);
         });
 
-        /** Send private message */
+        /* Send private message */
         new SMCommand("t")
             .alias("tell", "pm", "msg")
             .tabComplete("{player}")
@@ -307,7 +303,7 @@ public class SMChat extends SMFeature {
             })
             .register();
 
-        /** Send private message */
+        /* Send private message */
         new SMCommand("r")
             .permission("stemcraft.chat.tell")
             .action(ctx -> {
@@ -318,6 +314,7 @@ public class SMChat extends SMFeature {
 
                 Player targetPlayer = Bukkit.getServer().getPlayer(replyUuid);
                 ctx.checkNotNullLocale(replyUuid, "CMD_PLAYER_NOT_FOUND");
+                assert targetPlayer != null;
                 ctx.checkBooleanLocale(targetPlayer.isOnline(), "CMD_PLAYER_NOT_FOUND");
 
                 // check if player is muted or if the target player can view muted messages
@@ -336,7 +333,7 @@ public class SMChat extends SMFeature {
             })
             .register();
 
-        /** Mute Player Command */
+        /* Mute Player Command */
         new SMCommand("mute")
             .tabComplete("{player}")
             .permission("stemcraft.command.mute")
@@ -356,7 +353,7 @@ public class SMChat extends SMFeature {
             })
             .register();
 
-        /** Unmute Player Command */
+        /* Unmute Player Command */
         new SMCommand("unmute")
             .tabComplete("{player}")
             .permission("stemcraft.chat.mute")
@@ -376,7 +373,7 @@ public class SMChat extends SMFeature {
             })
             .register();
 
-        /** Mute All Command */
+        /* Mute All Command */
         new SMCommand("muteall")
             .permission("stemcraft.command.mute")
             .action(ctx -> {
@@ -385,7 +382,7 @@ public class SMChat extends SMFeature {
             })
             .register();
 
-        /** Unmute All Command */
+        /* Unmute All Command */
         new SMCommand("unmuteall")
             .permission("stemcraft.chat.mute")
             .action(ctx -> {
@@ -400,10 +397,10 @@ public class SMChat extends SMFeature {
 
     /**
      * Check if a string has been caught by one of the filters.
-     * 
-     * @param player
-     * @param s
-     * @return
+     *
+     * @param player The player to check.
+     * @param s The string to check.
+     * @return Boolean value if the string is filtered.
      */
     public Boolean isFiltered(Player player, String s) {
         if (player.hasPermission("stemcraft.chat.override")) {
