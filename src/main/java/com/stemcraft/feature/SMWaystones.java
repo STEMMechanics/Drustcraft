@@ -287,7 +287,7 @@ public class SMWaystones extends SMFeature {
             ResultSet resultSet = statement.executeQuery();
 
             if (SMDebugger.isDebugging("SMWaystones")) {
-                SMDebugger.debug("SMWaystones", "checkWaystoneExists SQL Query (\"", statement.toString(), "\") took ", String.valueOf((Instant.now().toEpochMilli() - cWE)), "ms.");
+                SMDebugger.debug("SMWaystones", "checkWaystoneExists SQL Query (\"" + statement + "\") took " + (Instant.now().toEpochMilli() - cWE) + "ms.");
             }
 
             if (resultSet.next()) {
@@ -298,7 +298,7 @@ public class SMWaystones extends SMFeature {
             e.printStackTrace();
 
             if (SMDebugger.isDebugging("SMWaystones")) {
-                SMDebugger.debug("SMWaystones", "checkWaystoneExists SQL Query (unknown) took ", String.valueOf((Instant.now().toEpochMilli() - cWE)), "ms yet failed.");
+                SMDebugger.debug("SMWaystones", "checkWaystoneExists SQL Query (unknown) took " + (Instant.now().toEpochMilli() - cWE) + "ms yet failed.");
             }
         }
         
