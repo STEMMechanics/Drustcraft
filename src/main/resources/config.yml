@@ -77,6 +77,13 @@ graves:
     worlds:
         - survival
 
+waystones:
+    max-distance: 4000
+    blocks:
+        - GOLD_BLOCK
+        - EMERALD_BLOCK
+        - DIAMOND_BLOCK
+
 character-bindings:
     crafting_table: "\uE120"
     enchantment_table: "\uE121"
