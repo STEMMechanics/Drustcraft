@@ -14,7 +14,7 @@ public class SMPlayerWeather extends SMFeature {
 
         new SMCommand("playerweather")
             .alias("pweather")
-            .permission("stemcraft.pweather")
+            .permission("stemcraft.command.pweather")
             .tabComplete(options, "{player}")
             .action(ctx -> {
                 Player targetPlayer = ctx.player;
