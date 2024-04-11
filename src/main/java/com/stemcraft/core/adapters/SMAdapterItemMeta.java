@@ -37,11 +37,12 @@ public class SMAdapterItemMeta implements SMJsonAdapter, JsonSerializer<ItemMeta
         String metaType = deserialize.getOrDefault(META_TYPE_KEY, "").toString().toUpperCase();
         
         if(metaType.equals("MAP")) {
-            Color mapColor = SMAdapterItemMeta.deserializeRawColor(
-                (Map<String, Object>)deserialize.get(DISPLAY_MAP_COLOR_KEY));
-            
-            deserialize.put(DISPLAY_MAP_COLOR_KEY, mapColor);
-        
+            if(deserialize.containsKey(DISPLAY_MAP_COLOR_KEY)) {
+                Color mapColor = SMAdapterItemMeta.deserializeRawColor(
+                        (Map<String, Object>) deserialize.get(DISPLAY_MAP_COLOR_KEY));
+
+                deserialize.put(DISPLAY_MAP_COLOR_KEY, mapColor);
+            }
         } else if (metaType.equals("POTION")) {
             if(deserialize.containsKey(CUSTOM_EFFECTS_KEY)) {
                 List<PotionEffect> potionEffects = SMAdapterItemMeta.deserializePotionEffects(
@@ -54,19 +55,19 @@ public class SMAdapterItemMeta implements SMJsonAdapter, JsonSerializer<ItemMeta
                 deserialize.put(CUSTOM_COLOR_KEY, customColor);
             }
         } else if (metaType.equalsIgnoreCase("FIREWORK")) {
-            
-            List<FireworkEffect> fireworkEffects = SMAdapterItemMeta.deserializeFireworkEffects(
-                    (List<Map<String, Object>>) deserialize.get(FIREWORK_EFFECTS_KEY));
-            
-            deserialize.put(FIREWORK_EFFECTS_KEY, fireworkEffects);
+            if(deserialize.containsKey(FIREWORK_EFFECTS_KEY)) {
+                List<FireworkEffect> fireworkEffects = SMAdapterItemMeta.deserializeFireworkEffects(
+                        (List<Map<String, Object>>) deserialize.get(FIREWORK_EFFECTS_KEY));
 
+                deserialize.put(FIREWORK_EFFECTS_KEY, fireworkEffects);
+            }
         } else if (metaType.equalsIgnoreCase("FIREWORK_EFFECT")) {
-            
-            FireworkEffect fireworkEffect = SMAdapterItemMeta.deserializeRawFireworkEffect(
-                    (Map<String, Object>) deserialize.get(FIREWORK_EFFECT_KEY));
-            
-            deserialize.put(FIREWORK_EFFECT_KEY, fireworkEffect);
+            if(deserialize.containsKey(FIREWORK_EFFECT_KEY)) {
+                FireworkEffect fireworkEffect = SMAdapterItemMeta.deserializeRawFireworkEffect(
+                        (Map<String, Object>) deserialize.get(FIREWORK_EFFECT_KEY));
 
+                deserialize.put(FIREWORK_EFFECT_KEY, fireworkEffect);
+            }
         } else if (metaType.equalsIgnoreCase("LEATHER_ARMOR") || metaType.equalsIgnoreCase("COLORABLE_ARMOR")) {
             if(deserialize.containsKey(COLOR_KEY)) {
                 Color color = SMAdapterItemMeta.deserializeRawColor(
