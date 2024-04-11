@@ -19,6 +19,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -69,6 +70,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
     private static final HashMap<String, SMTask> runOnceMapDelay = new HashMap<>();
 
     private static final List<UUID> recentlyJoinedPlayers = new ArrayList<>();
+    private static final List<UUID> ignoreTeleportingPlayers = new ArrayList<>();
 
     /**
      * The display version. Can be set in config. Defaults to plugin version.
@@ -192,6 +194,15 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
             STEMCraft.runOnceDelay(taskId, 100, () -> {
                 recentlyJoinedPlayers.remove(uuid);
+            });
+        });
+
+        SMEvent.register(PlayerTeleportEvent.class, EventPriority.LOWEST, (ctx) -> {
+            PlayerTeleportEvent event = (PlayerTeleportEvent) ctx.event;
+            Player player = event.getPlayer();
+
+            STEMCraft.runLater(1, () -> {
+                clearIgnoreTeleportingPlayer(player);
             });
         });
 
@@ -656,5 +667,33 @@ public class STEMCraft extends JavaPlugin implements Listener {
      */
     public static Boolean hasPlayerRecentlyJoined(Player player) {
         return recentlyJoinedPlayers.contains(player.getUniqueId());
+    }
+
+    /**
+     * Flag the player to ignoring teleport events
+     */
+    public static void setIgnoreTeleportingPlayer(Player player) {
+        if(!ignoreTeleportingPlayers.contains(player.getUniqueId())) {
+            ignoreTeleportingPlayers.add(player.getUniqueId());
+        }
+
+        STEMCraft.runOnceDelay("ignore_teleport_" + player.getUniqueId(), 5, () -> {
+            ignoreTeleportingPlayers.remove(player.getUniqueId());
+        });
+    }
+
+    /**
+     * Clear the player for ignoring teleport events
+     */
+    public static void clearIgnoreTeleportingPlayer(Player player) {
+        STEMCraft.cancelRunOnceDelay("ignore_teleport_" + player.getUniqueId());
+        ignoreTeleportingPlayers.remove(player.getUniqueId());
+    }
+
+    /**
+     * Ignore player teleporting
+     */
+    public static boolean ignoreTeleportingPlayer(Player player) {
+        return ignoreTeleportingPlayers.contains(player.getUniqueId());
     }
 }

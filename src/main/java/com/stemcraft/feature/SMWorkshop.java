@@ -57,7 +57,7 @@ public class SMWorkshop extends SMFeature {
         SMTabComplete.register("workshops", () -> {
             List<String> list = new ArrayList<>();
 
-            list.add("exit");
+            list.add("leave");
 
             for (World world : Bukkit.getWorlds()) {
                 if (world.getName().startsWith("workshop_")) {
@@ -136,15 +136,16 @@ public class SMWorkshop extends SMFeature {
                 ctx.checkNotConsole();
                 ctx.checkArgs(1, "WORKSHOP_USAGE");
 
-                if (ctx.args.get(0).equalsIgnoreCase("exit")) {
+                if (ctx.args.get(0).equalsIgnoreCase("leave")) {
                     UUID uuid = ctx.player.getUniqueId();
                     if (lastLocations.containsKey(uuid)) {
                         SMCommon.safePlayerTeleport(ctx.player, lastLocations.get(uuid));
                         lastLocations.remove(uuid);
                     } else {
                         ctx.returnErrorLocale("WORKSHOP_EXIT_WALK");
-                        return;
                     }
+
+                    return;
                 }
 
                 SMWorldRegion worldRegion = this.findWorkshopRegion(ctx.args.get(0));
@@ -266,6 +267,7 @@ public class SMWorkshop extends SMFeature {
 
             UUID uuid = player.getUniqueId();
             if (lastLocations.containsKey(uuid)) {
+                STEMCraft.setIgnoreTeleportingPlayer(player);
                 SMCommon.safePlayerTeleport(player, lastLocations.get(uuid));
                 lastLocations.remove(uuid);
             }

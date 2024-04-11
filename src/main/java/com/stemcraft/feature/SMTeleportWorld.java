@@ -1,5 +1,6 @@
 package com.stemcraft.feature;
 
+import com.stemcraft.STEMCraft;
 import com.stemcraft.core.SMCommon;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.SMMessenger;
@@ -21,14 +22,15 @@ public class SMTeleportWorld extends SMFeature {
         SMEvent.register(PlayerTeleportEvent.class, ctx -> {
             Player player = ctx.event.getPlayer();
             Location from = ctx.event.getFrom();
-            this.saveLastLocation(player, from);
+
+            if(!STEMCraft.ignoreTeleportingPlayer(player))
+                this.saveLastLocation(player, from);
         });
 
         SMEvent.register(PlayerQuitEvent.class, ctx -> {
             Player player = ctx.event.getPlayer();
             this.saveLastLocation(player, player.getLocation());
         });
-
 
         new SMCommand("tpworld")
             .alias("teleportworld")
