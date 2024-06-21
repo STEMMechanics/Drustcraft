@@ -5,4 +5,4 @@ api-version: 1.20
 author: nomadjimbob
 website: https://stemcraft.com.au
 description: Provides utilities for the STEMCraft server
-softdepend: [NBTAPI, PlaceholderAPI, Citizens, ItemsAdder, WorldEdit, WorldGuard, Vault, LuckPerms]
+softdepend: [NBTAPI, PlaceholderAPI, Citizens, ItemsAdder, WorldEdit, Vault, LuckPerms]
