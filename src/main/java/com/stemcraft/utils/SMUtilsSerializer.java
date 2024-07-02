@@ -4,10 +4,6 @@ import com.stemcraft.STEMCraft;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.LoaderOptions;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +13,12 @@ import java.util.stream.Collectors;
 
 public class SMUtilsSerializer {
 
+    /**
+     * Serialize a PotionEffect list
+     *
+     * @param effects The effects list to serialize
+     * @return The serialized content
+     */
     public static String serializePotionEffects(List<PotionEffect> effects) {
         YamlConfiguration config = new YamlConfiguration();
         List<Map<String, Object>> serializedEffects = effects.stream()
@@ -26,6 +28,12 @@ public class SMUtilsSerializer {
         return config.saveToString().trim();
     }
 
+    /**
+     * Deserialize a PotionEffect list
+     *
+     * @param yaml The serialized effect list
+     * @return The PotionEffect list
+     */
     @SuppressWarnings("unchecked")
     public static List<PotionEffect> deserializePotionEffects(String yaml) {
         if(!yaml.isEmpty()) {
@@ -47,6 +55,12 @@ public class SMUtilsSerializer {
         return new ArrayList<>();
     }
 
+    /**
+     * Serialize a ItemStack array
+     *
+     * @param stacks The itemstack array to serialize
+     * @return The serialized content
+     */
     public static String serializeItemStacks(ItemStack[] stacks) {
         YamlConfiguration config = new YamlConfiguration();
         config.set("serialized.size", stacks.length);
@@ -60,6 +74,12 @@ public class SMUtilsSerializer {
         return config.saveToString().trim();
     }
 
+    /**
+     * Deserialize a ItemStack array
+     *
+     * @param yaml The serialized itemstack array
+     * @return The ItemStack array
+     */
     public static ItemStack[] deserializeItemStacks(String yaml) {
         if(!yaml.isEmpty()) {
             YamlConfiguration config = new YamlConfiguration();
