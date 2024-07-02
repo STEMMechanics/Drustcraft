@@ -12,9 +12,13 @@ import java.util.List;
 
 public class _240703_MigrateBooksTable extends SMDatabaseMigration {
 
+    /**
+     * Perform the database migration
+     */
     @Override
     public void migrate() {
         try {
+            /* Copy DB data and save to Books configuration */
             PreparedStatement statement = SMDatabase.prepareStatement(
                     "SELECT * FROM books");
 
@@ -33,6 +37,7 @@ public class _240703_MigrateBooksTable extends SMDatabaseMigration {
             resultSet.close();
             statement.close();
 
+            /* Drops the books table */
             String sql = "DROP TABLE books";
             statement = SMDatabase.prepareStatement("DROP TABLE books");
             assert statement != null;
