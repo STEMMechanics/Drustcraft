@@ -60,6 +60,13 @@ public class SMCommandContext {
         return player == null;
     }
 
+    /**
+     * Display the command usage string.
+     */
+    public void usage() {
+        this.info("Usage: " + this.command.usage());
+    }
+
 
     /**
      * Throw an exception on invalid arguments.
@@ -114,6 +121,10 @@ public class SMCommandContext {
 
     public final void error(String message, String... replacements) {
         SMMessenger.send(SMMessenger.MessageType.ERROR, sender, message, replacements);
+    }
+
+    public final void errorNoPermission() {
+        error("You do not have permission to use this command");
     }
 
     /**

@@ -13,8 +13,9 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.List;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Getter
 public class SMPlayerState {
@@ -90,38 +91,47 @@ public class SMPlayerState {
         this.mainInventory = player.getInventory().getContents().clone();
         this.armorContents = player.getInventory().getArmorContents().clone();
 
-        try {
-            PreparedStatement statement = SMDatabase.prepareStatement(
-                    "INSERT INTO player_state (player, game_mode, world, x, y, z, yaw, pitch, experience, total_experience, level, food_level, saturation, exhaustion, fire_ticks, remaining_air, maximum_air, fall_distance, absorption_amount, effects, ender_chest, main_inventory, armor_contents) " +
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            statement.setString(1, player.getUniqueId().toString());
-            statement.setString(2, gameMode.name());
-            statement.setString(3, world.getName());
-            statement.setDouble(4, location.getX());
-            statement.setDouble(5, location.getY());
-            statement.setDouble(6, location.getZ());
-            statement.setFloat(7, location.getYaw());
-            statement.setFloat(8, location.getPitch());
-            statement.setFloat(9, experience);
-            statement.setInt(10, totalExperience);
-            statement.setInt(11, level);
-            statement.setInt(12, foodLevel);
-            statement.setFloat(13, saturation);
-            statement.setFloat(14, exhaustion);
-            statement.setInt(15, fireTicks);
-            statement.setInt(16, remainingAir);
-            statement.setInt(17, maximumAir);
-            statement.setFloat(18, fallDistance);
-            statement.setDouble(19, absorptionAmount);
-            statement.setString(20, SMUtilsSerializer.serializePotionEffects(effects));
-            statement.setString(21, SMUtilsSerializer.serializeItemStacks(enderChest));
-            statement.setString(22, SMUtilsSerializer.serializeItemStacks(mainInventory));
-            statement.setString(23, SMUtilsSerializer.serializeItemStacks(armorContents));
+//        try {
+//            PreparedStatement statement = SMDatabase.prepareStatement(
+//                    "INSERT INTO player_state (player, game_mode, world, x, y, z, yaw, pitch, experience, total_experience, level, food_level, saturation, exhaustion, fire_ticks, remaining_air, maximum_air, fall_distance, absorption_amount, effects, ender_chest, main_inventory, armor_contents) " +
+//                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+//            statement.setString(1, player.getUniqueId().toString());
+//            statement.setString(2, gameMode.name());
+//            statement.setString(3, world.getName());
+//            statement.setDouble(4, location.getX());
+//            statement.setDouble(5, location.getY());
+//            statement.setDouble(6, location.getZ());
+//            statement.setFloat(7, location.getYaw());
+//            statement.setFloat(8, location.getPitch());
+//            statement.setFloat(9, experience);
+//            statement.setInt(10, totalExperience);
+//            statement.setInt(11, level);
+//            statement.setInt(12, foodLevel);
+//            statement.setFloat(13, saturation);
+//            statement.setFloat(14, exhaustion);
+//            statement.setInt(15, fireTicks);
+//            statement.setInt(16, remainingAir);
+//            statement.setInt(17, maximumAir);
+//            statement.setFloat(18, fallDistance);
+//            statement.setDouble(19, absorptionAmount);
+//            statement.setString(20, SMUtilsSerializer.serializePotionEffects(effects));
+//            statement.setString(21, SMUtilsSerializer.serializeItemStacks(enderChest));
+//            statement.setString(22, SMUtilsSerializer.serializeItemStacks(mainInventory));
+//            statement.setString(23, SMUtilsSerializer.serializeItemStacks(armorContents));
+//
+//            statement.executeUpdate();
+//        } catch (Exception e) {
+//            STEMCraft.error(e);
+//        }
 
-            statement.executeUpdate();
-        } catch (Exception e) {
-            STEMCraft.error(e);
-        }
+        LocalDateTime timestamp = LocalDateTime.now();
+        String timestampStr = timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+
+        String path = "state/" + player.getUniqueId() + "." + timestampStr;
+        SMConfig.set(path + ".game_mode", gameMode.name());
+        SMConfig.set(path + ".effects", SMUtilsSerializer.serializePotionEffects(effects));
+        SMConfig.set(path + ".main_inventory", SMUtilsSerializer.serializeItemStacks(mainInventory));
+        SMConfig.save(path);
     }
 
     public void restore() {
@@ -160,47 +170,80 @@ public class SMPlayerState {
     public static List<SMPlayerState> find(Player player, World world, GameMode gameMode) {
         List<SMPlayerState> states = new ArrayList<>();
 
-        try {
-            PreparedStatement statement = SMDatabase.prepareStatement(
-                    "SELECT * FROM player_state WHERE player = ? AND world = ? AND game_mode = ? ORDER BY created DESC");
-            statement.setString(1, player.getUniqueId().toString());
-            statement.setString(2, world.getName());
-            statement.setString(3, gameMode.name());
+        String path = "state/" + player.getUniqueId();
+        List<String> keys = SMConfig.getKeys(path);
+        sortStateKeys(keys);
 
-            ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                SMPlayerState state = new SMPlayerState(player);
-                state.gameMode = GameMode.valueOf(resultSet.getString("game_mode"));
-                state.location.setX(resultSet.getDouble("x"));
-                state.location.setY(resultSet.getDouble("y"));
-                state.location.setZ(resultSet.getDouble("z"));
-                state.location.setYaw(resultSet.getFloat("yaw"));
-                state.location.setPitch(resultSet.getFloat("pitch"));
+        keys.forEach(key -> {
+            SMPlayerState state = new SMPlayerState(player);
+            String keyPath = path + "." + key;
+            GameMode keyGameMode = null;
 
-                state.experience = resultSet.getFloat("experience");
-                state.totalExperience = resultSet.getInt("total_experience");
-                state.level = resultSet.getInt("level");
-                state.foodLevel = resultSet.getInt("food_level");
-                state.saturation = resultSet.getFloat("saturation");
-                state.exhaustion = resultSet.getFloat("exhaustion");
-                state.fireTicks = resultSet.getInt("fire_ticks");
-                state.remainingAir = resultSet.getInt("remaining_air");
-                state.maximumAir = resultSet.getInt("maximum_air");
-                state.fallDistance = resultSet.getFloat("fall_distance");
-                state.absorptionAmount = resultSet.getDouble("absorption_amount");
+            if(SMConfig.contains(keyPath + ".game_mode")) {
+                keyGameMode = GameMode.valueOf(SMConfig.getString(keyPath + ".game_mode"));
+            }
 
-                state.effects = SMUtilsSerializer.deserializePotionEffects(resultSet.getString("effects"));
-
-                state.enderChest = SMUtilsSerializer.deserializeItemStacks(resultSet.getString("ender_chest"));
-                state.mainInventory = SMUtilsSerializer.deserializeItemStacks(resultSet.getString("main_inventory"));
-                state.armorContents = SMUtilsSerializer.deserializeItemStacks(resultSet.getString("armor_contents"));
+            if(keyGameMode == gameMode) {
+                state.gameMode = GameMode.valueOf(SMConfig.getString(keyPath + ".game_mode"));
+                state.effects = SMUtilsSerializer.deserializePotionEffects(SMConfig.getString(keyPath + ".effects"));
+                state.mainInventory = SMUtilsSerializer.deserializeItemStacks(SMConfig.getString(keyPath + ".main_inventory"));
 
                 states.add(state);
             }
-        } catch (Exception e) {
-            STEMCraft.error(e);
-        }
+        });
+
+//        try {
+//            PreparedStatement statement = SMDatabase.prepareStatement(
+//                    "SELECT * FROM player_state WHERE player = ? AND world = ? AND game_mode = ? ORDER BY created DESC");
+//            statement.setString(1, player.getUniqueId().toString());
+//            statement.setString(2, world.getName());
+//            statement.setString(3, gameMode.name());
+//
+//            ResultSet resultSet = statement.executeQuery();
+//            while (resultSet.next()) {
+//                SMPlayerState state = new SMPlayerState(player);
+//                state.gameMode = GameMode.valueOf(resultSet.getString("game_mode"));
+//                state.location.setX(resultSet.getDouble("x"));
+//                state.location.setY(resultSet.getDouble("y"));
+//                state.location.setZ(resultSet.getDouble("z"));
+//                state.location.setYaw(resultSet.getFloat("yaw"));
+//                state.location.setPitch(resultSet.getFloat("pitch"));
+//
+//                state.experience = resultSet.getFloat("experience");
+//                state.totalExperience = resultSet.getInt("total_experience");
+//                state.level = resultSet.getInt("level");
+//                state.foodLevel = resultSet.getInt("food_level");
+//                state.saturation = resultSet.getFloat("saturation");
+//                state.exhaustion = resultSet.getFloat("exhaustion");
+//                state.fireTicks = resultSet.getInt("fire_ticks");
+//                state.remainingAir = resultSet.getInt("remaining_air");
+//                state.maximumAir = resultSet.getInt("maximum_air");
+//                state.fallDistance = resultSet.getFloat("fall_distance");
+//                state.absorptionAmount = resultSet.getDouble("absorption_amount");
+//
+//                state.effects = SMUtilsSerializer.deserializePotionEffects(resultSet.getString("effects"));
+//
+//                state.enderChest = SMUtilsSerializer.deserializeItemStacks(resultSet.getString("ender_chest"));
+//                state.mainInventory = SMUtilsSerializer.deserializeItemStacks(resultSet.getString("main_inventory"));
+//                state.armorContents = SMUtilsSerializer.deserializeItemStacks(resultSet.getString("armor_contents"));
+//
+//                states.add(state);
+//            }
+//        } catch (Exception e) {
+//            STEMCraft.error(e);
+//        }
 
         return states;
+    }
+
+    private static void sortStateKeys(List<String> keys) {
+        Comparator<String> timestampComparator = (key1, key2) -> {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+            LocalDateTime dateTime1 = LocalDateTime.parse(key1, formatter);
+            LocalDateTime dateTime2 = LocalDateTime.parse(key2, formatter);
+            return dateTime2.compareTo(dateTime1); // Compare in reverse order (latest to earliest)
+        };
+
+        keys.sort(timestampComparator);
     }
 }

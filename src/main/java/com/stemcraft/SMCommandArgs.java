@@ -72,7 +72,6 @@ public class SMCommandArgs {
 
         // Check if the current peek exists
         if (currentArg == null) {
-            STEMCraft.info("No more elements to peek");
             return value; // No more elements to peek
         }
 

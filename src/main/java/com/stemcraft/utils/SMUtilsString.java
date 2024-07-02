@@ -225,4 +225,16 @@ public class SMUtilsString {
     public static String beautifyCapitalize(@NonNull Enum<?> enumeration) {
         return beautifyCapitalize(enumeration.toString().toLowerCase());
     }
+
+    public static boolean isInteger(String str) {
+        if (str == null || str.isEmpty()) {
+            return false;
+        }
+        try {
+            Integer.parseInt(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
 }

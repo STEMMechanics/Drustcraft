@@ -1,6 +1,7 @@
 package com.stemcraft;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.command.CommandSender;
@@ -10,11 +11,13 @@ import org.bukkit.generator.ChunkGenerator;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Locale;
 
 public class SMWorld {
     private final String name;
     private World world;
+    private static HashMap<String, SMWorld> worldMap;
 
     public SMWorld(String name) {
         this.name = name;
@@ -26,6 +29,11 @@ public class SMWorld {
                 break;
             }
         }
+    }
+
+    public SMWorld(World world) {
+        this.name = world.getName();
+        this.world = world;
     }
 
     public World getBase() {
@@ -81,6 +89,41 @@ public class SMWorld {
 
         return true;
     }
+
+    public boolean getAutoLoad() {
+        return SMConfig.getBoolean("config.worlds." + this.name + ".load", false);
+    }
+
+    public void setAutoLoad(boolean value) {
+        SMConfig.set("config.worlds." + this.name + ".load", value);
+        SMConfig.save("config");
+    }
+
+    public String getGameMode() {
+        return SMConfig.getString("config.worlds." + this.name + ".gamemode", "");
+    }
+
+    public void setGameMode(String value) {
+        String path = "config.worlds." + this.name + ".gamemode";
+
+        if(value.isEmpty()) {
+            SMConfig.remove(path);
+        } else {
+            SMConfig.set(path, value);
+        }
+
+        SMConfig.save("config");
+    }
+
+    public Location getSpawn() {
+        return this.getBase().getSpawnLocation();
+    }
+
+    public void setSpawn(Location location) {
+        this.getBase().setSpawnLocation(location);
+    }
+
+    /** Static Methods **/
 
     public static boolean exists(String name) {
         for(World world : Bukkit.getWorlds()) {

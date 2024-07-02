@@ -54,8 +54,6 @@ public class SMPaginate {
 
     public SMPaginate showItems(BiFunction<Integer, Integer, List<BaseComponent[]>> func) {
         int start = (page - 1) * ITEMS_PER_PAGE;
-        SMMessenger.send(SMMessenger.MessageType.INFO, sender, count + " items found");
-        SMMessenger.send(SMMessenger.MessageType.INFO, sender, ITEMS_PER_PAGE + " items per page");
         int maxPages = (count + ITEMS_PER_PAGE - 1) / ITEMS_PER_PAGE;
         List<BaseComponent[]> lines = func.apply(start, ITEMS_PER_PAGE);
 

@@ -1,10 +1,14 @@
 package com.stemcraft.listeners;
 
+import com.stemcraft.SMConfig;
 import com.stemcraft.SMListener;
 import com.stemcraft.SMPlayer;
 import com.stemcraft.STEMCraft;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -14,6 +18,9 @@ public class SMBlockListener extends SMListener {
         final ItemStack is = event.getItemInHand();
 
         final SMPlayer player = STEMCraft.getPlayer(event.getPlayer());
+
+
+
 //        if(player.hasUnlimited(is) && player.getBase().getGameMode() == GameMode.SURVIVAL) {
 //            STEMCraft.runLater(() -> {
 //                if (is != null && is.getType() != null && !SMUtilsMaterial.isAir(is.getType())) {
@@ -24,5 +31,15 @@ public class SMBlockListener extends SMListener {
 //                }
 //            });
 //        }
+    }
+
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        final Block block = event.getBlock();
+
+        if(block.getType() == Material.LODESTONE || block.getType() == Material.END_PORTAL_FRAME) {
+//                SMConfig.getStringList("waystones.worlds").contains(block.getWorld().getName())) {
+
+        }
     }
 }

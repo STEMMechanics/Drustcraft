@@ -1,14 +1,18 @@
 package com.stemcraft;
 
 import lombok.Setter;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.geysermc.geyser.api.GeyserApi;
 
 import java.util.List;
+import java.util.Map;
 
 public class SMPlayer {
     private final Player player;
@@ -18,6 +22,9 @@ public class SMPlayer {
     private PotionEffect previousNightVision = null;
 
     final int FOREVER_NIGHT_VISION_THRESHOLD = 1000000;
+
+    private static Boolean geyserInstalled = null;
+    private static GeyserApi geyserApi = null;
 
     public SMPlayer(Player player) {
         this.player = player;
@@ -137,5 +144,45 @@ public class SMPlayer {
             final float ratio = ((speed - 1) / 9) * (maxSpeed - defaultSpeed);
             return ratio + defaultSpeed;
         }
+    }
+
+    public static boolean isBedrock(Player player) {
+        if (geyserApi == null) {
+            if (geyserInstalled != null && !geyserInstalled) {
+                return false;
+            } else if (geyserInstalled == null) {
+                geyserInstalled = Bukkit.getPluginManager().getPlugin("Geyser-Spigot") != null;
+            }
+
+            if (geyserInstalled) {
+                geyserApi = GeyserApi.api();
+            }
+
+            if (geyserApi == null) {
+                return false;
+            }
+        }
+
+        return geyserApi.isBedrockPlayer(player.getUniqueId());
+    }
+
+    public static Boolean give(Player player, ItemStack item, Boolean dropOnFail, Boolean quiet) {
+        Map<Integer, ItemStack> leftover = player.getInventory().addItem(item);
+        if (!leftover.isEmpty()) {
+            if (dropOnFail) {
+                player.getWorld().dropItemNaturally(player.getLocation(), item);
+                return true;
+            } else if (!quiet) {
+                SMMessenger.send(SMMessenger.MessageType.ERROR, player, "You don't have enough room in your inventory!");
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public static Boolean give(Player player, ItemStack item) {
+        return give(player, item, false, false);
     }
 }

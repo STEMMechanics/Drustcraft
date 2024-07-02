@@ -107,7 +107,7 @@ public class SMCommand implements TabCompleter {
                     SMCommandContext context = new SMCommandContext(this, sender, label, args);
 
                     if (!Objects.equals(permission, "") && !sender.hasPermission(permission)) {
-                        context.error("You do not have permission to use this command");
+                        context.errorNoPermission();
                     } else {
                         this.execute(context);
                     }

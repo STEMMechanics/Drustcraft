@@ -4,6 +4,11 @@ import com.stemcraft.STEMCraft;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -16,8 +21,8 @@ public class SMUtilsSerializer {
         List<Map<String, Object>> serializedEffects = effects.stream()
                 .map(PotionEffect::serialize)
                 .collect(Collectors.toList());
-        config.set("effects", serializedEffects);
-        return config.saveToString();
+        config.set("serialized", serializedEffects);
+        return config.saveToString().trim();
     }
 
     @SuppressWarnings("unchecked")
@@ -28,7 +33,7 @@ public class SMUtilsSerializer {
         } catch (Exception e) {
             STEMCraft.error(e);
         }
-        List<Map<String, Object>> serializedEffects = (List<Map<String, Object>>) config.getList("effects");
+        List<Map<String, Object>> serializedEffects = (List<Map<String, Object>>) config.getList("serialized");
         return serializedEffects.stream()
                 .map(PotionEffect::new)
                 .collect(Collectors.toList());
@@ -36,8 +41,15 @@ public class SMUtilsSerializer {
 
     public static String serializeItemStacks(ItemStack[] stacks) {
         YamlConfiguration config = new YamlConfiguration();
-        config.set("items", stacks);
-        return config.saveToString();
+        config.set("serialized.size", stacks.length);
+
+        for(int i = 0; i < stacks.length; i++ ) {
+            if(stacks[i] != null) {
+                config.set("serialized.contents." + i, stacks[i]);
+            }
+        }
+
+        return config.saveToString().trim();
     }
 
     public static ItemStack[] deserializeItemStacks(String yaml) {
@@ -48,6 +60,14 @@ public class SMUtilsSerializer {
             STEMCraft.error(e);
         }
 
-        return config.getList("items").toArray(new ItemStack[0]);
+        int size = config.getInt("serialized.size", 0);
+        ItemStack[] stacks = new ItemStack[size];
+
+        for (int i = 0; i < size; i++) {
+            ItemStack item = config.getItemStack("serialized.contents." + i);
+            stacks[i] = item;
+        }
+
+        return stacks;
     }
 }

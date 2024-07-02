@@ -71,13 +71,14 @@ public class SMConfig {
 
         if (!isLoaded(path)) {
             try {
-                STEMCraft.info(filePath);
                 File file = new File(STEMCraft.getPlugin().getDataFolder(), filePath);
                 if (!file.exists()) {
                     InputStream defaultData = STEMCraft.getPlugin().getResource(filePath);
                     if (defaultData != null) {
                         // Ensure the parent directory exists
-                        file.getParentFile().mkdirs();
+                        if(!file.getParentFile().mkdirs()) {
+                            STEMCraft.error(new Exception("Could not create config directory"));
+                        }
 
                         // Write the defaultData to the filePath
                         try {
@@ -96,10 +97,14 @@ public class SMConfig {
                         DumperSettings.DEFAULT,
                         UpdaterSettings.DEFAULT);
 
-                YamlDocument yamlDefaults = YamlDocument.create(STEMCraft.getPlugin().getResource(filePath));
-
                 files.put(name, yamlFile);
-                defaults.put(name, yamlDefaults);
+
+                InputStream inputStream = STEMCraft.getPlugin().getResource(filePath);
+                if(inputStream != null) {
+                    YamlDocument yamlDefaults = YamlDocument.create(inputStream);
+                    defaults.put(name, yamlDefaults);
+                }
+
             } catch (Exception e) {
                 STEMCraft.error(e);
             }
@@ -111,7 +116,7 @@ public class SMConfig {
     }
 
     /**
-     * Get a specific configration file
+     * Get a specific configuration file
      *
      * @param path The configuration path.
      * @return The YAML document.
@@ -144,8 +149,6 @@ public class SMConfig {
 
     /**
      * Reload all config files
-     *
-     * @return
      */
     public static void reloadAll() {
         for (String name : files.keySet()) {
@@ -204,7 +207,7 @@ public class SMConfig {
         if (file != null) {
             file.set(key, value);
 
-            if (comment != null && comment != "") {
+            if (comment != null && !comment.isEmpty()) {
                 file.getBlock(key).addComment(comment);
             }
         }
@@ -230,8 +233,8 @@ public class SMConfig {
     /**
      * Check if specific key exists.
      *
-     * @param path
-     * @return
+     * @param path The path to check.
+     * @return {Boolean} If the key exists.
      */
     public static Boolean contains(String path) {
         YamlDocument file = getFile(path);
@@ -244,7 +247,27 @@ public class SMConfig {
     }
 
     /**
-     * Get boolean value of key. If does not exist, returns the default or null.
+     * Rename a key.
+     *
+     * @param path The path to change from.
+     * @param newPath The path to change to.
+     */
+    public static void renameKey(String path, String newPath) {
+        YamlDocument file = getFile(path);
+        String key = getKeyFromPath(path);
+        String newKey = getKeyFromPath(newPath);
+
+        if(file != null) {
+            if(file.contains(key)) {
+                Object data = file.get(key);
+                file.remove(key);
+                file.set(newKey, data);
+            }
+        }
+    }
+
+    /**
+     * Get boolean value of key. If it does not exist, returns the default or null.
      *
      * @param key The key to retrieve the value.
      * @return The key value, default or null.
@@ -271,10 +294,10 @@ public class SMConfig {
     }
 
     /**
-     * Get boolean value of key. If does not exist, returns defValue or null.
+     * Get boolean value of key. If it does not exist, returns defValue or null.
      *
      * @param path The key to retrieve the value.
-     * @param defValue The default value to return if not existant.
+     * @param defValue The default value to return if not existent.
      * @return The key value or defValue.
      */
     public static Boolean getBoolean(String path, Boolean defValue) {
@@ -288,7 +311,7 @@ public class SMConfig {
     }
 
     /**
-     * Get integer value of key. If does not exist, returns the default or null.
+     * Get integer value of key. If it does not exist, returns the default or null.
      *
      * @param key The key to retrieve the value.
      * @return The key value, default or null.
@@ -315,10 +338,10 @@ public class SMConfig {
     }
 
     /**
-     * Get integer value of key. If does not exist, returns defValue or null.
+     * Get integer value of key. If it does not exist, returns defValue or null.
      *
      * @param path The key to retrieve the value.
-     * @param defValue The default value to return if not existant.
+     * @param defValue The default value to return if not existent.
      * @return The key value or defValue.
      */
     public static Integer getInt(String path, Integer defValue) {
@@ -333,7 +356,7 @@ public class SMConfig {
     }
 
     /**
-     * Get integer list value of key. If does not exist, returns the default or null.
+     * Get integer list value of key. If it does not exist, returns the default or null.
      *
      * @param path The key to retrieve the value.
      * @return The key value, default or null.
@@ -363,10 +386,10 @@ public class SMConfig {
     }
 
     /**
-     * Get integer list value of key. If does not exist, returns defValue or null.
+     * Get integer list value of key. If it does not exist, returns defValue or null.
      *
      * @param path The key to retrieve the value.
-     * @param defValue The default value to return if not existant.
+     * @param defValue The default value to return if not existent.
      * @return The key value or defValue.
      */
     public static List<Integer> getIntList(String path, List<Integer> defValue) {
@@ -381,7 +404,7 @@ public class SMConfig {
     }
 
     /**
-     * Get double value of key. If does not exist, returns the default or null.
+     * Get double value of key. If it does not exist, returns the default or null.
      *
      * @param key The key to retrieve the value.
      * @return The key value, default or null.
@@ -408,10 +431,10 @@ public class SMConfig {
     }
 
     /**
-     * Get double value of key. If does not exist, returns defValue or null.
+     * Get double value of key. If it does not exist, returns defValue or null.
      *
      * @param path The key to retrieve the value.
-     * @param defValue The default value to return if not existant.
+     * @param defValue The default value to return if not existent.
      * @return The key value or defValue.
      */
     public static Double getDouble(String path, Double defValue) {
@@ -426,7 +449,7 @@ public class SMConfig {
     }
 
     /**
-     * Get double list value of key. If does not exist, returns the default or null.
+     * Get double list value of key. If it does not exist, returns the default or null.
      *
      * @param path The key to retrieve the value.
      * @return The key value, default or null.
@@ -456,10 +479,10 @@ public class SMConfig {
     }
 
     /**
-     * Get double list value of key. If does not exist, returns defValue or null.
+     * Get double list value of key. If it does not exist, returns defValue or null.
      *
      * @param path The key to retrieve the value.
-     * @param defValue The default value to return if not existant.
+     * @param defValue The default value to return if not existent.
      * @return The key value or defValue.
      */
     public static List<Double> getDoubleList(String path, List<Double> defValue) {
@@ -474,7 +497,7 @@ public class SMConfig {
     }
 
     /**
-     * Get float value of key. If does not exist, returns the default or null.
+     * Get float value of key. If it does not exist, returns the default or null.
      *
      * @param key The key to retrieve the value.
      * @return The key value, default or null.
@@ -501,10 +524,10 @@ public class SMConfig {
     }
 
     /**
-     * Get boolean value of key. If does not exist, returns defValue or null.
+     * Get boolean value of key. If it does not exist, returns defValue or null.
      *
      * @param path The key to retrieve the value.
-     * @param defValue The default value to return if not existant.
+     * @param defValue The default value to return if not existent.
      * @return The key value or defValue.
      */
     public static Float getFloat(String path, Float defValue) {
@@ -519,7 +542,7 @@ public class SMConfig {
     }
 
     /**
-     * Get float list value of key. If does not exist, returns the default or null.
+     * Get float list value of key. If it does not exist, returns the default or null.
      *
      * @param path The key to retrieve the value.
      * @return The key value, default or null.
@@ -549,10 +572,10 @@ public class SMConfig {
     }
 
     /**
-     * Get float list value of key. If does not exist, returns defValue or null.
+     * Get float list value of key. If it does not exist, returns defValue or null.
      *
      * @param path The key to retrieve the value.
-     * @param defValue The default value to return if not existant.
+     * @param defValue The default value to return if not existent.
      * @return The key value or defValue.
      */
     public static List<Float> getFloatList(String path, List<Float> defValue) {
@@ -567,7 +590,7 @@ public class SMConfig {
     }
 
     /**
-     * Get string value of key. If does not exist, returns the default or null.
+     * Get string value of key. If it does not exist, returns the default or null.
      *
      * @param key The key to retrieve the value.
      * @return The key value, default or null.
@@ -594,10 +617,10 @@ public class SMConfig {
     }
 
     /**
-     * Get string value of key. If does not exist, returns defValue or null.
+     * Get string value of key. If it does not exist, returns defValue or null.
      *
      * @param path The key to retrieve the value.
-     * @param defValue The default value to return if not existant.
+     * @param defValue The default value to return if not existent.
      * @return The key value or defValue.
      */
     public static String getString(String path, String defValue) {
@@ -612,7 +635,7 @@ public class SMConfig {
     }
 
     /**
-     * Get stringlist value of key. If does not exist, returns the default or null.
+     * Get string list value of key. If it does not exist, returns the default or null.
      *
      * @param path The key to retrieve the value.
      * @return The key value, default or null.
@@ -642,10 +665,10 @@ public class SMConfig {
     }
 
     /**
-     * Get string list value of key. If does not exist, returns defValue or null.
+     * Get string list value of key. If it does not exist, returns defValue or null.
      *
      * @param path The key to retrieve the value.
-     * @param defValue The default value to return if not existant.
+     * @param defValue The default value to return if not existent.
      * @return The key value or defValue.
      */
     public static List<String> getStringList(String path, List<String> defValue) {
@@ -696,7 +719,7 @@ public class SMConfig {
 
         for (Map.Entry<?, ?> entry : valueMap.entrySet()) {
             String valueAsString = entry.getValue().toString();
-            char value = valueAsString.length() > 0 ? valueAsString.charAt(0) : '\u0000';
+            char value = !valueAsString.isEmpty() ? valueAsString.charAt(0) : '\u0000';
             resultMap.put(entry.getKey().toString(), value);
         }
 
@@ -800,7 +823,7 @@ public class SMConfig {
         YamlDocument file = getFile(path);
         String key = getKeyFromPath(path);
 
-        if (key == null) {
+        if (key.isEmpty()) {
             return SMUtils.convertSetToList(file.getKeys());
         }
 
@@ -831,7 +854,7 @@ public class SMConfig {
         YamlDocument defaults = getDefaultFile(path);
         String key = getKeyFromPath(path);
 
-        if (key == null) {
+        if (key.isEmpty()) {
             return SMUtils.convertSetToList(defaults.getKeys());
         }
 
@@ -856,7 +879,7 @@ public class SMConfig {
         String key = getKeyFromPath(path);
 
         List<String> defaultKeys = getDefaultKeys(key);
-        if (defaultKeys == null) {
+        if (defaultKeys.isEmpty()) {
             return;
         }
 

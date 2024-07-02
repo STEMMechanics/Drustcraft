@@ -4,6 +4,7 @@ import com.stemcraft.*;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.sql.PreparedStatement;
@@ -18,21 +19,35 @@ public class SMCommandWorld extends SMCommand {
 
     public SMCommandWorld() {
         super("world");
+        description("World management");
         permission("stemcraft.command.world");
         tabCompletion("create");
-        tabCompletion("delete", "{world}", "cats");
-        tabCompletion("delete", "world", "dogs");
+        tabCompletion("delete", "{world}");
+        tabCompletion("list");
+        tabCompletion("load", "{world-offline}");
+        tabCompletion("unload", "{world}");
+        tabCompletion("teleport", "{world}");
+        tabCompletion("set", "spawn", "{world}");
+        tabCompletion("set", "gamemode", "{world}", "none");
+        tabCompletion("set", "gamemode", "{world}", "{gamemode}");
+        register();
     }
 
+    @Override
+    public String usage() {
+        return "/world [create|delete|list|load|unload|teleport] [world]";
+    }
+
+    @Override
     public void execute(SMCommandContext ctx) {
         if(ctx.args.wantsHelp()) {
-            ctx.error("Usage: not yet");
+            ctx.usage();
             return;
         }
 
         String action = ctx.args.shift("create|delete|list|load|unload|teleport");
         if(action == null) {
-            ctx.error("The action must be either 'create'");
+            ctx.usage();
             return;
         } else if(action.equalsIgnoreCase("load")) {
             String worldName = ctx.args.shift();
@@ -122,6 +137,42 @@ public class SMCommandWorld extends SMCommand {
 
                     return rows;
                 });
+        } else if(action.equalsIgnoreCase("set")) {
+            String subAction = ctx.args.shift("create|delete|list|load|unload|teleport");
+
+            // world name is not needed under 'spawn' and if called by a player
+            String worldName = ctx.args.shift();
+            if (worldName == null) {
+                ctx.error("You must specify a world name");
+                return;
+            }
+
+            SMWorld smWorld = new SMWorld(worldName);
+
+            if (!smWorld.exists()) {
+                ctx.error("World '{worldName}' does not exist", "worldName", worldName);
+                return;
+            }
+
+            if (!smWorld.isLoaded()) {
+                ctx.error("World '{worldName}' is not loaded", "worldName", worldName);
+                return;
+            }
+
+            if(subAction == null) {
+
+            } else if(subAction.equalsIgnoreCase("spawn")) {
+                Location location = ctx.player.getLocation();
+                smWorld.setSpawn(location);
+            } else if(subAction.equalsIgnoreCase("gamemode")) {
+                String gameMode = ctx.args.shift("none|survival|creative|adventure|spectator");
+                if(gameMode != null) {
+                    smWorld.setGameMode(gameMode);
+                } else {
+                    ctx.error("Unknown gamemode");
+                }
+            }
+
         } else {
             ctx.error("Unknown action: " + action);
         }

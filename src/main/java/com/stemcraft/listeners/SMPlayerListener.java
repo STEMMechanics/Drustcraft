@@ -11,6 +11,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.Objects;
 
 public class SMPlayerListener extends SMListener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -116,9 +119,20 @@ public class SMPlayerListener extends SMListener {
         }
     }
 
+    @EventHandler
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+        ItemStack item = event.getItemDrop().getItemStack();
+
+        if(SMItem.destroyOnDrop(item)) {
+            event.getItemDrop().remove();
+        }
+    }
+
     private void updateGameMode(Player player, World world) {
-        String newGameModeName = SMConfig.getString("config.worlds." + world.getName() + ".gamemode");
-        if(newGameModeName != null) {
+        SMWorld smWorld = new SMWorld(world);
+
+        String newGameModeName = smWorld.getGameMode();
+        if(!Objects.equals(newGameModeName, "")) {
             GameMode newGameMode = GameMode.valueOf(newGameModeName.toUpperCase());
             player.setGameMode(newGameMode);
         }
