@@ -59,24 +59,24 @@ public class SMBackup {
                 STEMCraft.error(e);
             }
 
-            B2StorageClient client = B2StorageClientFactory
-                    .createDefaultFactory()
-                    .create(applicationKeyId, applicationKey, "STEMCraft Java Plugin");
-
-            ConcurrentHashMap<Integer, Long> threadProgress = new ConcurrentHashMap<>();
-            long totalFileLength = zipFile.length();
-
-            final B2UploadListener uploadListener = (progress) -> {
-                threadProgress.put(progress.getPartIndex(), progress.getBytesSoFar());
-
-                long totalBytesUploaded = threadProgress.values().stream().mapToLong(Long::valueOf).sum();
-                double percent = (100.0 * totalBytesUploaded / totalFileLength);
-                STEMCraft.info(String.format("Total Upload Progress: %.2f%%", percent));
-            };
-
-            final ExecutorService executor = Executors.newSingleThreadExecutor();
-            final B2FileVersion file1;
             try {
+                B2StorageClient client = B2StorageClientFactory
+                        .createDefaultFactory()
+                        .create(applicationKeyId, applicationKey, "STEMCraft Java Plugin");
+
+                ConcurrentHashMap<Integer, Long> threadProgress = new ConcurrentHashMap<>();
+                long totalFileLength = zipFile.length();
+
+                final B2UploadListener uploadListener = (progress) -> {
+                    threadProgress.put(progress.getPartIndex(), progress.getBytesSoFar());
+
+                    long totalBytesUploaded = threadProgress.values().stream().mapToLong(Long::valueOf).sum();
+                    double percent = (100.0 * totalBytesUploaded / totalFileLength);
+                    STEMCraft.info(String.format("Total Upload Progress: %.2f%%", percent));
+                };
+
+                final ExecutorService executor = Executors.newSingleThreadExecutor();
+                final B2FileVersion file1;
                 final File fileOnDisk = new File("backup.zip");
                 final B2ContentSource source = B2FileContentSource.build(fileOnDisk);
                 final String fileName = "backup-text.zip";

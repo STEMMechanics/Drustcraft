@@ -58,7 +58,6 @@ public class SMSkipNight {
         if (numSleepers == 0) {
             if (bar != null) {
                 bar.removeAll();
-                bar = null;
                 worlds.put(world, null);
             }
         } else {

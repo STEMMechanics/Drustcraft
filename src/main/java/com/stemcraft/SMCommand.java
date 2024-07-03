@@ -16,7 +16,7 @@ public class SMCommand implements TabCompleter {
      * Command label.
      */
     @Getter
-    private String label = "";
+    private String label;
 
     /**
      * The command description
@@ -26,7 +26,7 @@ public class SMCommand implements TabCompleter {
     /**
      * The list of command aliases.
      */
-    private List<String> aliases = new ArrayList<>();
+    private final List<String> aliases = new ArrayList<>();
 
     /**
      * The permission required for this command.
@@ -139,8 +139,8 @@ public class SMCommand implements TabCompleter {
     }
 
     private static class TabCompleteValueOption {
-        String option = null;
-        String value = null;
+        String option;
+        String value;
 
         TabCompleteValueOption(String option, String value) {
             this.option = option;
@@ -148,7 +148,7 @@ public class SMCommand implements TabCompleter {
         }
     }
 
-    private class TabCompleteArgParser {
+    private static class TabCompleteArgParser {
         List<String> optionArgsAvailable = new ArrayList<>();
         Map<String, List<String>> valueOptionArgsAvailable = new HashMap<>();
         List<String> optionArgsUsed = new ArrayList<>();
@@ -266,8 +266,8 @@ public class SMCommand implements TabCompleter {
 
         // iterate each tab completion list
         tabCompletionList.forEach(list -> {
-            Boolean matches = true;
-            Integer listIndex = 0;
+            boolean matches = true;
+            int listIndex;
 
             // Copy the elements except the last one
             TabCompleteArgParser argParser = new TabCompleteArgParser(fullArgs);
@@ -295,7 +295,7 @@ public class SMCommand implements TabCompleter {
                 if (nextMatches == null) {
                     tabCompletionResults.addAll(TabCompleteArgParser.parseValue(listItem));
                     break;
-                } else if (nextMatches == false) {
+                } else if (!nextMatches) {
                     matches = false;
                     break;
                 }
@@ -311,7 +311,7 @@ public class SMCommand implements TabCompleter {
         });
 
         // remove non-matching items from the results based on what the player has already entered
-        if (args[args.length - 1].length() > 0) {
+        if (!args[args.length - 1].isEmpty()) {
             String arg = args[args.length - 1];
 
             // if the player has only a dash in the arg, only show dash arguments

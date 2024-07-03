@@ -1,10 +1,10 @@
 package com.stemcraft;
 
 public class SMCommandArgs {
-    private boolean fromConsole = false;
+    private final boolean fromConsole;
     private final String[] args;
     private int index = 0;
-    private int length = 0;
+    private int length;
 
     public SMCommandArgs(boolean fromConsole, String[] args) {
         this.fromConsole = fromConsole;

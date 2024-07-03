@@ -15,6 +15,7 @@ import static org.bukkit.ChatColor.COLOR_CHAR;
 public class SMUtilsString {
 
     /** Regex for finding color codes */
+    @SuppressWarnings("RegExpSingleCharAlternation")
     private static final Pattern COLOR_PATTERN = Pattern.compile("((&|" + COLOR_CHAR + ")[0-9a-fk-or])|(" + COLOR_CHAR
             + "x(" + COLOR_CHAR + "[0-9a-fA-F]){6})|((?<!\\\\)(\\{|&|)#((?:[0-9a-fA-F]{3}){2})(}|))");
 
