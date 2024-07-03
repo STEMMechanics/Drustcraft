@@ -8,7 +8,6 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
@@ -46,14 +45,18 @@ public class SMPlayerListener extends SMListener {
     }
 
     @EventHandler
-    public void onPlayerChangesGamemode(PlayerGameModeChangeEvent event) {
+    public void onPlayerChangesGameMode(PlayerGameModeChangeEvent event) {
         Player player = event.getPlayer();
-        SMPlayer smPlayer = new SMPlayer(player);
-        smPlayer.disableForeverNightVision();
-        smPlayer.resetFlySpeed();
-        smPlayer.resetWalkSpeed();
 
-        smPlayer.saveState();
+        SMPlayer smPlayer = new SMPlayer(player);
+        if(player.getGameMode().equals(GameMode.SURVIVAL) || player.getGameMode().equals(GameMode.CREATIVE)) {
+            smPlayer.disableForeverNightVision();
+            smPlayer.resetFlySpeed();
+            smPlayer.resetWalkSpeed();
+
+            smPlayer.saveState();
+        }
+
         STEMCraft.runLater(() -> {
             SMPlayerState state = smPlayer.getLastState(player.getWorld(), event.getNewGameMode());
             state.restore();
