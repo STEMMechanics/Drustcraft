@@ -7,13 +7,9 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class SMCommandWorld extends SMCommand {
 
@@ -48,7 +44,6 @@ public class SMCommandWorld extends SMCommand {
         String action = ctx.args.shift("create|delete|list|load|unload|teleport");
         if(action == null) {
             ctx.usage();
-            return;
         } else if(action.equalsIgnoreCase("load")) {
             String worldName = ctx.args.shift();
             if (worldName == null) {
@@ -107,7 +102,7 @@ public class SMCommandWorld extends SMCommand {
             }
 
             Player player = ctx.player;
-            player.teleport(smWorld.getBase().getSpawnLocation());
+            SMPlayer.teleport(player, smWorld.getBase().getSpawnLocation());
             ctx.success("Teleported to world '{worldName}'", "worldName", worldName);
         } else if(action.equalsIgnoreCase("list")) {
             Collection<String> worlds = SMWorld.list();
@@ -160,7 +155,7 @@ public class SMCommandWorld extends SMCommand {
             }
 
             if(subAction == null) {
-
+                ctx.usage();
             } else if(subAction.equalsIgnoreCase("spawn")) {
                 Location location = ctx.player.getLocation();
                 smWorld.setSpawn(location);

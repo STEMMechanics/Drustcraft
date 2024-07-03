@@ -12,6 +12,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
 import java.util.Objects;
 
 public class SMPlayerListener extends SMListener {
@@ -20,9 +21,7 @@ public class SMPlayerListener extends SMListener {
         SMPlayer smPlayer = new SMPlayer(event.getPlayer());
 
         smPlayer.setRecentlyJoined(true);
-        STEMCraft.runOnceDelay("player_recently_joined_" + event.getPlayer().getUniqueId().toString(), 100, () -> {
-            smPlayer.setRecentlyJoined(false);
-        });
+        STEMCraft.runOnceDelay("player_recently_joined_" + event.getPlayer().getUniqueId(), 100, () -> smPlayer.setRecentlyJoined(false));
 
         smPlayer.disableForeverNightVision();
 
@@ -32,15 +31,13 @@ public class SMPlayerListener extends SMListener {
                     updateGameMode(event.getPlayer(), event.getPlayer().getWorld());
                 }
 
-                smPlayer.teleport(Bukkit.getWorld("world").getSpawnLocation());
+                SMPlayer.teleport(event.getPlayer(), Objects.requireNonNull(Bukkit.getWorld("world")).getSpawnLocation());
             } else {
                 SMPlayerState state = smPlayer.getLastState(event.getPlayer().getWorld(), event.getPlayer().getGameMode());
                 state.restore();
             }
 
-            STEMCraft.runLater(20, () -> {
-                SMSkipNight.update(event.getPlayer().getWorld());
-            });
+            STEMCraft.runLater(20, () -> SMSkipNight.update(event.getPlayer().getWorld()));
         });
     }
 
@@ -67,13 +64,13 @@ public class SMPlayerListener extends SMListener {
 
     @EventHandler
     public void onPlayerTeleports(PlayerTeleportEvent event) {
-        if(event.getFrom().getWorld() != event.getTo().getWorld()) {
+        if(event.getFrom().getWorld() != Objects.requireNonNull(event.getTo()).getWorld()) {
             SMPlayer smPlayer = new SMPlayer(event.getPlayer());
             smPlayer.disableForeverNightVision();
             smPlayer.resetFlySpeed();
             smPlayer.resetWalkSpeed();
 
-            if(!SMUtilsWorld.getOverworldName(event.getFrom().getWorld().getName()).equalsIgnoreCase(SMUtilsWorld.getOverworldName(event.getTo().getWorld().getName()))) {
+            if(!SMUtilsWorld.getOverworldName(Objects.requireNonNull(event.getFrom().getWorld()).getName()).equalsIgnoreCase(SMUtilsWorld.getOverworldName(Objects.requireNonNull(event.getTo().getWorld()).getName()))) {
                 smPlayer.saveState();
                 STEMCraft.runLater(() -> {
                     SMPlayerState state = smPlayer.getLastState(event.getTo().getWorld(), event.getPlayer().getGameMode());
@@ -84,9 +81,7 @@ public class SMPlayerListener extends SMListener {
                 updateGameMode(event.getPlayer(), event.getTo().getWorld());
             }
 
-            STEMCraft.runLater(20, () -> {
-                SMSkipNight.update(event.getPlayer().getWorld());
-            });
+            STEMCraft.runLater(20, () -> SMSkipNight.update(event.getPlayer().getWorld()));
         }
     }
 
@@ -100,18 +95,14 @@ public class SMPlayerListener extends SMListener {
     @EventHandler
     public void onPlayerBedEnter(PlayerBedEnterEvent event) {
         if(event.getPlayer().getGameMode() == GameMode.SURVIVAL) {
-            STEMCraft.runLater(() -> {
-                SMSkipNight.update(event.getPlayer().getWorld());
-            });
+            STEMCraft.runLater(() -> SMSkipNight.update(event.getPlayer().getWorld()));
         }
     }
 
     @EventHandler
     public void onPlayerBedLeave(PlayerBedLeaveEvent event) {
         if(event.getPlayer().getGameMode() == GameMode.SURVIVAL) {
-            STEMCraft.runLater(() -> {
-                SMSkipNight.update(event.getPlayer().getWorld());
-            });
+            STEMCraft.runLater(() -> SMSkipNight.update(event.getPlayer().getWorld()));
         }
     }
 
@@ -128,6 +119,25 @@ public class SMPlayerListener extends SMListener {
 
         if(SMItem.destroyOnDrop(item)) {
             event.getItemDrop().remove();
+        }
+    }
+
+    /**
+     * When a player moves event
+     * @param event The event
+     */
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        List<SMRegion> regions = SMRegion.findRegions(event.getTo());
+
+        /* Apply region flags to player if they enter/exit a region */
+        if(!regions.isEmpty()) {
+            for(SMRegion region: regions) {
+                if(region.getTeleportTo() != null) {
+                    SMPlayer.teleport(event.getPlayer(), region.getTeleportTo());
+                    break;
+                }
+            }
         }
     }
 

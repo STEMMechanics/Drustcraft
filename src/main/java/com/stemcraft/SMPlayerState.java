@@ -155,7 +155,7 @@ public class SMPlayerState {
      */
     public void restore(boolean teleport, boolean setGameMode) {
         if(teleport) {
-            player.teleport(location);
+            SMPlayer.teleport(player, location);
         }
         if (setGameMode) {
             player.setGameMode(gameMode);

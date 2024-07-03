@@ -53,10 +53,8 @@ public class SMPlayer {
      *
      * @param location The location to teleport the player
      */
-    public void teleport(Location location) {
-        STEMCraft.runLater(() -> {
-            this.player.teleport(location);
-        });
+    public static void teleport(Player player, Location location) {
+        STEMCraft.runLater(() -> player.teleport(location));
     }
 
     /**
@@ -85,7 +83,7 @@ public class SMPlayer {
 
             getBase().addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 1, true, false));
         }
-    };
+    }
 
     /**
      * Disable night vision for the player.
@@ -98,7 +96,7 @@ public class SMPlayer {
                 previousNightVision = null;
             }
         }
-    };
+    }
 
     public SMPlayerState getLastState(World world, GameMode gameMode) {
         List<SMPlayerState> states = SMPlayerState.find(player, world, gameMode);
