@@ -3,8 +3,6 @@ package com.stemcraft;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import org.bukkit.entity.Player;
-import org.bukkit.Location;
 
 public class SMUtils {
 
@@ -21,17 +19,5 @@ public class SMUtils {
         }
 
         return stringList;
-    }
-
-    /**
-     * Teleport a player after 1 tick. This avoids the moved too quickly issue
-     *
-     * @param player The player to teleport
-     * @param location The location to teleport the player
-     */
-    public static void delayedTeleport(Player player, Location location) {
-        STEMCraft.runLater(1, () -> {
-            player.teleport(location);
-        });
     }
 }

@@ -9,10 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.generator.ChunkGenerator;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Locale;
+import java.util.*;
 
 public class SMWorld {
     private final String name;
@@ -72,7 +69,7 @@ public class SMWorld {
 
         File regionFolder = getWorldRegionFolder(name);
         if (regionFolder != null) {
-            for (String fileName : regionFolder.list()) {
+            for (String fileName : Objects.requireNonNull(regionFolder.list())) {
                 if (fileName.toLowerCase(Locale.ENGLISH).endsWith(".mca")) {
                     return true;
                 }
@@ -137,7 +134,8 @@ public class SMWorld {
 
     public static Collection<String> list() {
         String[] subDirs = Bukkit.getWorldContainer().list();
-        Collection<String> list = new ArrayList<String>(subDirs.length);
+        assert subDirs != null;
+        Collection<String> list = new ArrayList<>(subDirs.length);
         for (String name : subDirs) {
             if (isLoadable(name)) {
                 list.add(name);
@@ -172,12 +170,10 @@ public class SMWorld {
             if(Bukkit.getWorlds().get(0) != world) {
                 for (Player player : world.getPlayers()) {
                     SMMessenger.send(SMMessenger.MessageType.WARNING, player, "World '{name}' is being unloaded, teleporting to main world", "name", name);
-                    SMUtils.delayedTeleport(player, Bukkit.getWorlds().get(0).getSpawnLocation());
+                    SMPlayer.teleport(player, Bukkit.getWorlds().get(0).getSpawnLocation());
                 }
 
-                STEMCraft.runLater(1, () -> {
-                    Bukkit.unloadWorld(world, true);
-                });
+                STEMCraft.runLater(1, () -> Bukkit.unloadWorld(world, true));
 
                 world = null;
             }
@@ -189,12 +185,10 @@ public class SMWorld {
             if(Bukkit.getWorlds().get(0) != world) {
                 for (Player player : world.getPlayers()) {
                     SMMessenger.send(SMMessenger.MessageType.WARNING, player, "World is being removed, teleporting to main world");
-                    SMUtils.delayedTeleport(player, Bukkit.getWorlds().get(0).getSpawnLocation());
+                    SMPlayer.teleport(player, Bukkit.getWorlds().get(0).getSpawnLocation());
                 }
 
-                STEMCraft.runLater(1, () -> {
-                    Bukkit.unloadWorld(world, false);
-                });
+                STEMCraft.runLater(1, () -> Bukkit.unloadWorld(world, false));
 
                 SMMessenger.send(SMMessenger.MessageType.INFO, sender, "World removed");
                 world = null;
