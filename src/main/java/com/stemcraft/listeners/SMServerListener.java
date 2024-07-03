@@ -9,6 +9,10 @@ import org.bukkit.event.server.ServerListPingEvent;
 
 public class SMServerListener extends SMListener {
 
+    /**
+     * When the server is pinged by a client
+     * @param event The event
+     */
     @EventHandler
     public void onServerListPing(ServerListPingEvent event) {
         String motdTitle = SMConfig.getString("config.motd.title", "");
@@ -18,7 +22,6 @@ public class SMServerListener extends SMListener {
         if (SMConfig.getBoolean("config.motd.show-version", true)) {
             motdTextVersion = "&8v" + STEMCraft.getDisplayVersion() + " &r";
         }
-
 
         event.setMotd(SMUtilsString.colorize(motdTitle + "\n" + motdTextVersion + motdText));
     }
