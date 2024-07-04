@@ -49,4 +49,20 @@ public class SMUtilsMath {
             return inside;
         }
     }
+
+    /**
+     * Round a location to 2 decimal points.
+     *
+     * @param loc The location to round
+     * @return The rounded location
+     */
+    public static Location round(Location loc) {
+        double x = Math.round(loc.getX() * 100.0) / 100.0;
+        double y = Math.round(loc.getY() * 100.0) / 100.0;
+        double z = Math.round(loc.getZ() * 100.0) / 100.0;
+        float yaw = (float) (Math.round(loc.getYaw() * 100.0) / 100.0);
+        float pitch = (float) (Math.round(loc.getPitch() * 100.0) / 100.0);
+
+        return new Location(loc.getWorld(), x, y, z, yaw, pitch);
+    }
 }
