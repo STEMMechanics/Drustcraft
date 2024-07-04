@@ -5,19 +5,23 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
+@SuppressWarnings("UnusedReturnValue")
 @Setter
 @Getter
 public class SMRegion {
     private static List<SMRegion> regionList = new ArrayList<>();
+    private static HashMap<Player, List<SMRegion>> playerRegionList = new HashMap<>();
 
     private String name;
     private List<Location> points;
-    private Location teleportTo;
+    private int priority;
+    private Location teleportEnter;
+    private Location teleportExit;
+    private Boolean allowDrops;
 
     /**
      * Save a region to disk
@@ -37,11 +41,24 @@ public class SMRegion {
             SMConfig.set(path + ".points." + i + ".z", location.getBlockZ());
         }
 
-        if(teleportTo != null && teleportTo.getWorld() != null) {
-            SMConfig.set(path + ".flags.teleport.world", teleportTo.getWorld().getName());
-            SMConfig.set(path + ".flags.teleport.x", teleportTo.getX());
-            SMConfig.set(path + ".flags.teleport.y", teleportTo.getY());
-            SMConfig.set(path + ".flags.teleport.z", teleportTo.getZ());
+        SMConfig.set(path + ".priority", priority);
+
+        if(teleportEnter != null && teleportEnter.getWorld() != null) {
+            SMConfig.set(path + ".flags.teleport-enter.world", teleportEnter.getWorld().getName());
+            SMConfig.set(path + ".flags.teleport-enter.x", teleportEnter.getX());
+            SMConfig.set(path + ".flags.teleport-enter.y", teleportEnter.getY());
+            SMConfig.set(path + ".flags.teleport-enter.z", teleportEnter.getZ());
+        }
+
+        if(teleportExit != null && teleportExit.getWorld() != null) {
+            SMConfig.set(path + ".flags.teleport-exit.world", teleportExit.getWorld().getName());
+            SMConfig.set(path + ".flags.teleport-exit.x", teleportExit.getX());
+            SMConfig.set(path + ".flags.teleport-exit.y", teleportExit.getY());
+            SMConfig.set(path + ".flags.teleport-exit.z", teleportExit.getZ());
+        }
+
+        if(allowDrops != null) {
+            SMConfig.set(path + ".flags.allow-drops", allowDrops);
         }
     }
 
@@ -60,6 +77,7 @@ public class SMRegion {
             }
         });
 
+        sortRegionsByPriority(list);
         return list;
     }
 
@@ -78,6 +96,79 @@ public class SMRegion {
             }
         });
 
+        sortRegionsByPriority(list);
         return list;
+    }
+
+    /**
+     * Return the list of regions a player is inside
+     * @param player The player to query
+     * @return The region list
+     */
+    public static List<SMRegion> playerRegions(Player player) {
+        if(playerRegionList.containsKey(player)) {
+            return playerRegionList.get(player);
+        }
+
+        return new ArrayList<>();
+    }
+
+    /**
+     * Update the regions that the player is inside
+     * @param player The player to update
+     * @return If to cancel the player update (ie player movement)
+     */
+    public static boolean updatePlayerRegions(Player player, Location newLocation) {
+        if(!player.isOnline()) {
+            playerRegionList.remove(player);
+        } else {
+            List<SMRegion> regionList = findRegions(newLocation);
+
+            if(playerRegionList.containsKey(player)) {
+                boolean skipEnterRegionEvent = false;
+                boolean skipFutureTeleports = false;
+
+                List<SMRegion> previousRegions = playerRegionList.get(player);
+                List<SMRegion> enteredRegions = regionList.stream()
+                        .filter(region -> !previousRegions.contains(region))
+                        .toList();
+                List<SMRegion> exitedRegions = previousRegions.stream()
+                        .filter(region -> !regionList.contains(region))
+                        .toList();
+
+                for(SMRegion region : exitedRegions) {
+                    if(region.teleportExit != null && !skipFutureTeleports) {
+                        SMPlayer.teleport(player, region.teleportExit);
+                        skipEnterRegionEvent = true;
+                        skipFutureTeleports = true;
+                    }
+                }
+
+                if(!skipEnterRegionEvent) {
+                    for(SMRegion region : enteredRegions) {
+                        if(region.teleportEnter != null && !skipFutureTeleports) {
+                            SMPlayer.teleport(player, region.teleportEnter);
+                            skipFutureTeleports = true;
+                        }
+                    }
+                }
+            }
+
+            playerRegionList.put(player, regionList);
+        }
+
+        return false;
+    }
+
+    public static boolean updatePlayerRegions(Player player) {
+        return updatePlayerRegions(player, player.getLocation());
+    }
+
+    /**
+     * Sort the passed list by priority
+     * @param list The list to sort
+     */
+    private static void sortRegionsByPriority(List<SMRegion> list) {
+        list.sort(Comparator.comparingInt(SMRegion::getPriority).reversed());
     }
 }

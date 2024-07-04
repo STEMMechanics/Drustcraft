@@ -12,7 +12,6 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.List;
 import java.util.Objects;
 
 public class SMPlayerListener extends SMListener {
@@ -37,7 +36,10 @@ public class SMPlayerListener extends SMListener {
                 state.restore();
             }
 
-            STEMCraft.runLater(20, () -> SMSkipNight.update(event.getPlayer().getWorld()));
+            STEMCraft.runLater(20, () -> {
+                SMRegion.updatePlayerRegions(event.getPlayer());
+                SMSkipNight.update(event.getPlayer().getWorld());
+            });
         });
     }
 
@@ -115,6 +117,13 @@ public class SMPlayerListener extends SMListener {
 
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent event) {
+        for(SMRegion region : SMRegion.playerRegions(event.getPlayer())) {
+            if(!region.getAllowDrops()) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+
         ItemStack item = event.getItemDrop().getItemStack();
 
         if(SMItem.destroyOnDrop(item)) {
@@ -128,16 +137,8 @@ public class SMPlayerListener extends SMListener {
      */
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        List<SMRegion> regions = SMRegion.findRegions(event.getTo());
-
-        /* Apply region flags to player if they enter/exit a region */
-        if(!regions.isEmpty()) {
-            for(SMRegion region: regions) {
-                if(region.getTeleportTo() != null) {
-                    SMPlayer.teleport(event.getPlayer(), region.getTeleportTo());
-                    break;
-                }
-            }
+        if(!SMRegion.updatePlayerRegions(event.getPlayer(), event.getTo())) {
+            event.setCancelled(true);
         }
     }
 
