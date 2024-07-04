@@ -238,9 +238,9 @@ public class SMPlayerState {
             state.fallDistance = SMConfig.getFloat(path + ".fall-distance", state.fallDistance);
             state.absorptionAmount = SMConfig.getDouble(path + ".absorption", state.absorptionAmount);
 
-            state.effects = SMUtilsSerializer.deserializePotionEffects(SMConfig.getString(path + ".effects"));
-            state.mainInventory = SMUtilsSerializer.deserializeItemStacks(SMConfig.getString(path + ".main-inventory"));
-            state.enderChest = SMUtilsSerializer.deserializeItemStacks(SMConfig.getString(path + ".ender-chest"));
+            state.effects = SMUtilsSerializer.deserializePotionEffects(SMConfig.getString(path + ".effects", ""));
+            state.mainInventory = SMUtilsSerializer.deserializeItemStacks(SMConfig.getString(path + ".main-inventory", ""));
+            state.enderChest = SMUtilsSerializer.deserializeItemStacks(SMConfig.getString(path + ".ender-chest", ""));
             state.armorContents = SMUtilsSerializer.deserializeItemStacks(SMConfig.getString(path + ".armor-contents"));
 
             states.add(state);
