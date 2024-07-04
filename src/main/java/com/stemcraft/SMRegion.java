@@ -3,6 +3,7 @@ package com.stemcraft;
 import com.stemcraft.utils.SMUtilsMath;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -13,7 +14,7 @@ import java.util.*;
 @Setter
 @Getter
 public class SMRegion {
-    private static List<SMRegion> regionList = new ArrayList<>();
+    private static HashMap<String, SMRegion> regionList = new HashMap<>();
     private static HashMap<Player, List<SMRegion>> playerRegionList = new HashMap<>();
 
     private String name;
@@ -23,16 +24,59 @@ public class SMRegion {
     private Location teleportExit;
     private Boolean allowDrops;
 
+    public boolean setName(String newName) {
+        if(newName == null || newName.isEmpty()) {
+            return false;
+        }
+
+        String formattedNewName = newName.toLowerCase();
+        if(name != null) {
+            if (name.equals(formattedNewName)) {
+                return true;
+            }
+
+            if (regionList.containsKey(formattedNewName)) {
+                return false;
+            }
+
+            regionList.remove(name);
+        }
+
+        regionList.put(formattedNewName, this);
+
+        SMConfig.remove("regions." + name);
+        name = formattedNewName;
+
+        return true;
+    }
+
+    /**
+     * Delete the region
+     */
+    public void delete() {
+        SMConfig.remove("regions." + name);
+        SMConfig.save("regions");
+
+        playerRegionList.forEach((player, list) -> {
+            list.removeIf(item -> item.getName().equals(name));
+        });
+
+        regionList.remove(name);
+    }
+
     /**
      * Save a region to disk
      */
     public void save() {
-        if(name.isEmpty() || points.isEmpty()) {
+        if(name == null || name.isEmpty() || points == null || points.isEmpty()) {
             return;
         }
 
-        String path = "regions." + Objects.requireNonNull(points.get(0).getWorld()).getName() + "." + name;
+        String path = "regions." + name;
         SMConfig.remove(path);
+
+        SMConfig.set(path + ".world", Objects.requireNonNull(points.get(0).getWorld()).getName());
+        SMConfig.set(path + ".priority", priority);
 
         for(int i = 0; i < points.size(); i++) {
             Location location = points.get(i);
@@ -40,8 +84,6 @@ public class SMRegion {
             SMConfig.set(path + ".points." + i + ".y", location.getBlockY());
             SMConfig.set(path + ".points." + i + ".z", location.getBlockZ());
         }
-
-        SMConfig.set(path + ".priority", priority);
 
         if(teleportEnter != null && teleportEnter.getWorld() != null) {
             SMConfig.set(path + ".flags.teleport-enter.world", teleportEnter.getWorld().getName());
@@ -60,6 +102,47 @@ public class SMRegion {
         if(allowDrops != null) {
             SMConfig.set(path + ".flags.allow-drops", allowDrops);
         }
+
+        SMConfig.save("regions");
+    }
+
+    /**
+     * Create a new region
+     * @param name The unique name for the region
+     * @param points The boundary points of the region
+     * @return The region object or null
+     */
+    public static SMRegion create(String name, List<Location> points) {
+        if(regionList.containsKey(name)) {
+            return null;
+        }
+
+        SMRegion region = new SMRegion();
+        region.name = name;
+        region.points = points;
+
+        regionList.put(name, region);
+        region.save();
+
+        return region;
+    }
+
+    /**
+     * Get an existing region object by name
+     * @param name The name of the region
+     * @return The region object or null
+     */
+    public static SMRegion get(String name) {
+        return regionList.get(name.toLowerCase());
+    }
+
+    /**
+     * Returns is a region with the name exists
+     * @param name The name to check
+     * @return If the region exists
+     */
+    public static boolean exists(String name) {
+        return regionList.containsKey(name.toLowerCase());
     }
 
     /**
@@ -69,7 +152,7 @@ public class SMRegion {
     public static List<SMRegion> findRegions(World world) {
         List<SMRegion> list = new ArrayList<>();
 
-        regionList.forEach(region -> {
+        regionList.forEach((name, region) -> {
             if(!region.getPoints().isEmpty()) {
                 if(Objects.equals(region.getPoints().get(0).getWorld(), world)) {
                     list.add(region);
@@ -88,7 +171,7 @@ public class SMRegion {
     public static List<SMRegion> findRegions(Location location) {
         List<SMRegion> list = new ArrayList<>();
 
-        regionList.forEach(region -> {
+        regionList.forEach((name, region) -> {
             if(!region.getPoints().isEmpty()) {
                 if(SMUtilsMath.insideRegion(location, region.getPoints())) {
                     list.add(region);
@@ -170,5 +253,60 @@ public class SMRegion {
      */
     private static void sortRegionsByPriority(List<SMRegion> list) {
         list.sort(Comparator.comparingInt(SMRegion::getPriority).reversed());
+    }
+
+    public static void loadRegions() {
+        regionList.clear();
+
+        List<String> names = SMConfig.getKeys("regions");
+        names.forEach(name -> {
+            String worldName = SMConfig.getString("regions." + name + ".world", "");
+            if(worldName.isEmpty()) {
+                return;
+            }
+
+            World world = Bukkit.getWorld(worldName);
+            if(world == null) {
+                return;
+            }
+
+            List<String> pointNumbers = SMConfig.getKeys("regions." + name + ".points");
+            if(pointNumbers.isEmpty()) {
+                return;
+            }
+
+            SMRegion region = new SMRegion();
+            region.name = name.toLowerCase();
+
+            List<Location> points = new ArrayList<>();
+            pointNumbers.forEach(pointIndex -> {
+                Location location = new Location(
+                    world,
+                    SMConfig.getDouble("regions." + name + ".points." + pointIndex + ".x", 0.0d),
+                    SMConfig.getDouble("regions." + name + ".points." + pointIndex + ".y", 0.0d),
+                    SMConfig.getDouble("regions." + name + ".points." + pointIndex + ".z", 0.0d)
+                );
+
+                points.add(location);
+            });
+            region.points = points;
+
+            if(SMConfig.contains("regions." + name + ".flags.teleport-enter")) {
+                String flagWorldName = SMConfig.getString("regions." + name + ".flags.teleport-enter.world", "");
+                if(!flagWorldName.isEmpty()) {
+                    World flagWorld = Bukkit.getWorld(flagWorldName);
+                    if(flagWorld != null) {
+                        region.teleportEnter = new Location(
+                                world,
+                                SMConfig.getDouble("regions." + name + ".flags.teleport-enter.x", 0.0d),
+                                SMConfig.getDouble("regions." + name + ".flags.teleport-enter.y", 0.0d),
+                                SMConfig.getDouble("regions." + name + ".flags.teleport-enter.z", 0.0d)
+                        );
+                    }
+                }
+            }
+
+            regionList.put(name, region);
+        });
     }
 }

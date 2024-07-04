@@ -137,7 +137,7 @@ public class SMPlayerListener extends SMListener {
      */
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        if(!SMRegion.updatePlayerRegions(event.getPlayer(), event.getTo())) {
+        if(SMRegion.updatePlayerRegions(event.getPlayer(), event.getTo())) {
             event.setCancelled(true);
         }
     }
