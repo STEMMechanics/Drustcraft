@@ -194,6 +194,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
         });
 
         SMSkipNight.initialize();
+        SMRegion.loadRegions();
         SMWebServer.start();
 
         STEMCraft.runTimer(20, 1, () -> {
@@ -208,6 +209,10 @@ public class STEMCraft extends JavaPlugin implements Listener {
      */
     @Override
     public void onDisable() {
+        for(Player player : plugin.getServer().getOnlinePlayers()) {
+            SMPlayer.saveState(player);
+        }
+
         // Disconnect from Database
         if (SMDatabase.isConnected()) {
             SMDatabase.disconnect();
