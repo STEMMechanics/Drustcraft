@@ -17,9 +17,11 @@ public class SMCommandRegion extends SMCommand {
     public SMCommandRegion() {
         super("region");
         description("Region management");
+        alias("rg");
         permission("stemcraft.command.region");
         tabCompletion("create");
         tabCompletion("delete", "{region}");
+        tabCompletion("select", "{region}");
         tabCompletion("list");
         tabCompletion("set", "{region}", "teleport-enter");
         register();
@@ -27,7 +29,7 @@ public class SMCommandRegion extends SMCommand {
 
     @Override
     public String usage() {
-        return "/region [create|delete|list|load|unload|teleport] [world]";
+        return "/region [create|select|delete|list|load|unload|teleport] [region]";
     }
 
     @Override
@@ -37,7 +39,7 @@ public class SMCommandRegion extends SMCommand {
             return;
         }
 
-        String action = ctx.args.shift("create|delete|list|set");
+        String action = ctx.args.shift("create|delete|list|set|select");
         String regionName = "";
         SMRegion region = null;
 
@@ -85,6 +87,16 @@ public class SMCommandRegion extends SMCommand {
             assert region != null;
             region.delete();
             ctx.success("Region '{regionName}' deleted", "regionName", regionName);
+        } else if(action.equalsIgnoreCase("select")) {
+            assert region != null;
+
+            if(ctx.fromConsole()) {
+                ctx.error("This command requires to be run by a player");
+                return;
+            }
+
+            SMWorldEdit.setSelection(ctx.player, region.getPoints());
+            ctx.success("Region '{regionName}' selected", "regionName", regionName);
         } else if(action.equalsIgnoreCase("list")) {
             Collection<String> worlds = SMWorld.list();
 

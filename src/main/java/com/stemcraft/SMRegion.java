@@ -136,6 +136,22 @@ public class SMRegion {
     }
 
     /**
+     * Get a region name list
+     * @return The region names
+     */
+    public static List<String> getRegionNames() {
+        return new ArrayList<>(regionList.keySet());
+    }
+
+    /**
+     * Get a region list
+     * @return The region list
+     */
+    public static List<SMRegion> getRegions() {
+        return new ArrayList<>(regionList.values());
+    }
+
+    /**
      * Get all the regions filtered by World (null for all)
      * @param world Filter by world
      */
