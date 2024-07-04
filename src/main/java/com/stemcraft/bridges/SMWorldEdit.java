@@ -1,6 +1,7 @@
 package com.stemcraft.bridges;
 
 import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.math.BlockVector3;
@@ -9,6 +10,8 @@ import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.regions.selector.Polygonal2DRegionSelector;
+import com.sk89q.worldedit.regions.selector.limit.PermissiveSelectorLimits;
+import com.sk89q.worldedit.regions.selector.limit.SelectorLimits;
 import com.stemcraft.STEMCraft;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -104,14 +107,24 @@ public class SMWorldEdit {
                 selector.selectSecondary(pos2, null);
             } catch (Exception e) {
                 STEMCraft.error(e);
+                return;
             }
         } else {
             // Polygon selection
             selector = new Polygonal2DRegionSelector(world);
+            SelectorLimits limits = PermissiveSelectorLimits.getInstance();
+
+
+            boolean isFirst = true;
             for (Location point : points) {
                 BlockVector3 pos = toBlockVector3(point);
                 try {
-                    selector.selectPrimary(pos, null);
+                    if (isFirst) {
+                        selector.selectPrimary(pos, limits);
+                        isFirst = false;
+                    } else {
+                        selector.selectSecondary(pos, limits);
+                    }
                 } catch (Exception e) {
                     STEMCraft.error(e);
                 }
