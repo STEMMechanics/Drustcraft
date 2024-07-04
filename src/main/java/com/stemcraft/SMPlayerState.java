@@ -1,5 +1,6 @@
 package com.stemcraft;
 
+import com.stemcraft.utils.SMUtilsLocation;
 import com.stemcraft.utils.SMUtilsSerializer;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -114,12 +115,7 @@ public class SMPlayerState {
         String path = "state/" + player.getUniqueId() + "." + timestampStr;
 
         SMConfig.set(path + ".game-mode", gameMode.name());
-        SMConfig.set(path + ".location.world", world.getName());
-        SMConfig.set(path + ".location.x", location.getX());
-        SMConfig.set(path + ".location.y", location.getY());
-        SMConfig.set(path + ".location.z", location.getZ());
-        SMConfig.set(path + ".location.yaw", location.getYaw());
-        SMConfig.set(path + ".location.pitch", location.getPitch());
+        SMConfig.set(path + ".location", SMUtilsLocation.toString(location));
 
         if(experience != 0.0f) SMConfig.set(path + ".experience", experience);
         if(totalExperience != 0) SMConfig.set(path + ".total-experience", totalExperience);
@@ -207,24 +203,20 @@ public class SMPlayerState {
                 }
             }
 
+            Location location = SMUtilsLocation.fromString(SMConfig.getString(path + ".location"));
+            if(location == null) {
+                return;
+            }
+
             if(world != null) {
-                if(!world.getName().equalsIgnoreCase(SMConfig.getString(path + ".location.world"))) {
+                if(!world.equals(location.getWorld())) {
                     return;
                 }
             }
 
             state.timestamp = LocalDateTime.parse(key, formatter);
-
             state.gameMode = GameMode.valueOf(SMConfig.getString(path + ".game-mode", state.gameMode.name()));
-            state.world = Bukkit.getWorld(SMConfig.getString(path + ".location.world", state.world.getName()));
-            state.location = new Location(
-                state.world,
-                SMConfig.getDouble(path + ".location.x", state.location.getX()),
-                SMConfig.getDouble(path + ".location.y", state.location.getY()),
-                SMConfig.getDouble(path + ".location.z", state.location.getZ()),
-                SMConfig.getFloat(path + ".location.yaw", state.location.getYaw()),
-                SMConfig.getFloat(path + ".location.pitch", state.location.getPitch())
-            );
+            state.world = state.location.getWorld();
 
             state.experience = SMConfig.getFloat(path + ".experience", state.experience);
             state.totalExperience = SMConfig.getInt(path + ".total-experience", state.totalExperience);
