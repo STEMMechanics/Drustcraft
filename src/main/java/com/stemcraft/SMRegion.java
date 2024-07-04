@@ -254,6 +254,15 @@ public class SMRegion {
     }
 
     /**
+     * Reload the regions players are inside. This will adjust any flags
+     */
+    public static void reloadPlayerRegions() {
+        for(Player player : Bukkit.getOnlinePlayers()) {
+            playerRegionList.put(player, findRegions(player.getLocation()));
+        }
+    }
+
+    /**
      * Sort the passed list by priority
      * @param list The list to sort
      */
