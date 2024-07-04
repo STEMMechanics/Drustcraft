@@ -29,7 +29,7 @@ public class SMCommandRegion extends SMCommand {
 
     @Override
     public String usage() {
-        return "/region [create|select|delete|list|load|unload|teleport] [region]";
+        return "/region [create|select|delete|list|load|unload|teleport|update] [region]";
     }
 
     @Override
@@ -39,7 +39,7 @@ public class SMCommandRegion extends SMCommand {
             return;
         }
 
-        String action = ctx.args.shift("create|delete|list|set|select");
+        String action = ctx.args.shift("create|delete|list|set|select|update");
         String regionName = "";
         SMRegion region = null;
 
@@ -97,6 +97,25 @@ public class SMCommandRegion extends SMCommand {
 
             SMWorldEdit.setSelection(ctx.player, region.getPoints());
             ctx.success("Region '{regionName}' selected", "regionName", regionName);
+        } else if(action.equalsIgnoreCase("update")) {
+            assert region != null;
+
+            if(ctx.fromConsole()) {
+                ctx.error("This command requires to be run by a player");
+                return;
+            }
+
+            List<Location> points = SMWorldEdit.getSelection(ctx.player);
+            if(points == null) {
+                ctx.error("You do not have a world edit selection");
+                return;
+            }
+
+            region.setPoints(points);
+            region.save();
+
+            SMRegion.reloadPlayerRegions();
+            ctx.success("Region '{regionName}' updated", "regionName", regionName);
         } else if(action.equalsIgnoreCase("list")) {
             Collection<String> worlds = SMWorld.list();
 
