@@ -107,6 +107,11 @@ public class SMPlayer {
         return new SMPlayerState(player);
     }
 
+    public static void saveState(Player player) {
+        SMPlayerState state = new SMPlayerState(player);
+        state.save();
+    }
+
     public void saveState() {
         SMPlayerState state = new SMPlayerState(player);
         state.save();
