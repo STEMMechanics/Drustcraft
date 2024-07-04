@@ -57,9 +57,7 @@ public class SMRegion {
         SMConfig.remove("regions." + name);
         SMConfig.save("regions");
 
-        playerRegionList.forEach((player, list) -> {
-            list.removeIf(item -> item.getName().equals(name))
-        });
+        playerRegionList.forEach((player, list) -> list.removeIf(item -> item.getName().equals(name)));
 
         regionList.remove(name);
     }
