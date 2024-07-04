@@ -58,7 +58,7 @@ public class SMRegion {
         SMConfig.save("regions");
 
         playerRegionList.forEach((player, list) -> {
-            list.removeIf(item -> item.getName().equals(name));
+            list.removeIf(item -> item.getName().equals(name))
         });
 
         regionList.remove(name);
@@ -80,23 +80,15 @@ public class SMRegion {
 
         for(int i = 0; i < points.size(); i++) {
             Location location = points.get(i);
-            SMConfig.set(path + ".points." + i + ".x", location.getBlockX());
-            SMConfig.set(path + ".points." + i + ".y", location.getBlockY());
-            SMConfig.set(path + ".points." + i + ".z", location.getBlockZ());
+            SMConfig.set(path + ".points." + i, location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ());
         }
 
         if(teleportEnter != null && teleportEnter.getWorld() != null) {
-            SMConfig.set(path + ".flags.teleport-enter.world", teleportEnter.getWorld().getName());
-            SMConfig.set(path + ".flags.teleport-enter.x", teleportEnter.getX());
-            SMConfig.set(path + ".flags.teleport-enter.y", teleportEnter.getY());
-            SMConfig.set(path + ".flags.teleport-enter.z", teleportEnter.getZ());
+            SMConfig.set(path + ".flags.teleport-enter", teleportEnter.getWorld().getName() + "," + teleportEnter.getX() + "," + teleportEnter.getY() + "," + teleportEnter.getZ());
         }
 
         if(teleportExit != null && teleportExit.getWorld() != null) {
-            SMConfig.set(path + ".flags.teleport-exit.world", teleportExit.getWorld().getName());
-            SMConfig.set(path + ".flags.teleport-exit.x", teleportExit.getX());
-            SMConfig.set(path + ".flags.teleport-exit.y", teleportExit.getY());
-            SMConfig.set(path + ".flags.teleport-exit.z", teleportExit.getZ());
+            SMConfig.set(path + ".flags.teleport-exit", teleportExit.getWorld().getName() + "," + teleportExit.getX() + "," + teleportExit.getY() + "," + teleportExit.getZ());
         }
 
         if(allowDrops != null) {
@@ -280,28 +272,35 @@ public class SMRegion {
 
             List<Location> points = new ArrayList<>();
             pointNumbers.forEach(pointIndex -> {
-                Location location = new Location(
-                    world,
-                    SMConfig.getDouble("regions." + name + ".points." + pointIndex + ".x", 0.0d),
-                    SMConfig.getDouble("regions." + name + ".points." + pointIndex + ".y", 0.0d),
-                    SMConfig.getDouble("regions." + name + ".points." + pointIndex + ".z", 0.0d)
-                );
+                String[] values = SMConfig.getString("regions." + name + ".points." + pointIndex, "").split(",");
+                if(values.length >= 3) {
+                    try {
+                        double x = Double.parseDouble(values[0]);
+                        double y = Double.parseDouble(values[1]);
+                        double z = Double.parseDouble(values[2]);
 
-                points.add(location);
+                        Location location = new Location(world, x, y, z);
+                        points.add(location);
+                    } catch (NumberFormatException e) {
+                        // Skip this point if any value can't be parsed as a double
+                    }
+                }
             });
             region.points = points;
 
             if(SMConfig.contains("regions." + name + ".flags.teleport-enter")) {
-                String flagWorldName = SMConfig.getString("regions." + name + ".flags.teleport-enter.world", "");
-                if(!flagWorldName.isEmpty()) {
-                    World flagWorld = Bukkit.getWorld(flagWorldName);
-                    if(flagWorld != null) {
-                        region.teleportEnter = new Location(
-                                world,
-                                SMConfig.getDouble("regions." + name + ".flags.teleport-enter.x", 0.0d),
-                                SMConfig.getDouble("regions." + name + ".flags.teleport-enter.y", 0.0d),
-                                SMConfig.getDouble("regions." + name + ".flags.teleport-enter.z", 0.0d)
-                        );
+                String[] values = SMConfig.getString("regions." + name + ".flags.teleport-enter", "").split(",");
+                if(values.length >= 4) {
+                    try {
+                        World flagWorld = Bukkit.getWorld(values[0]);
+                        double x = Double.parseDouble(values[1]);
+                        double y = Double.parseDouble(values[2]);
+                        double z = Double.parseDouble(values[3]);
+                        if(flagWorld != null) {
+                            region.teleportEnter = new Location(flagWorld, x, y, z);
+                        }
+                    } catch (NumberFormatException e) {
+                        // Skip this point if any value can't be parsed as a double
                     }
                 }
             }
