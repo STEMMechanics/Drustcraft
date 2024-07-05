@@ -2,6 +2,7 @@ package com.stemcraft;
 
 import com.stemcraft.utils.SMUtilsLocation;
 import com.stemcraft.utils.SMUtilsSerializer;
+import com.stemcraft.utils.SMUtilsWorld;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -15,8 +16,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static com.stemcraft.SMConfig.remove;
-
 @Getter
 public class SMPlayerState {
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
@@ -24,7 +23,7 @@ public class SMPlayerState {
     private LocalDateTime timestamp;
     private Location location;
     private GameMode gameMode;
-    private World world;
+    private String world;
     private float experience;
     private int totalExperience;
     private int level;
@@ -57,9 +56,11 @@ public class SMPlayerState {
      * Reset the player state to defaults
      */
     public void reset() {
+        World defaultWorld = Bukkit.getWorlds().get(0);
+
         this.timestamp = LocalDateTime.now();
-        this.world = Bukkit.getWorlds().get(0);
-        this.location = world.getSpawnLocation();
+        this.world = defaultWorld.getName();
+        this.location = defaultWorld.getSpawnLocation();
         this.gameMode = GameMode.SURVIVAL;
         this.experience = 0.0f;
         this.totalExperience = 0;
@@ -88,10 +89,11 @@ public class SMPlayerState {
             return;
         }
 
+        this.world = SMUtilsWorld.getOverworldName(player.getWorld().getName());
+
         this.timestamp = LocalDateTime.now();
         this.location = player.getLocation();
         this.gameMode = player.getGameMode();
-        this.world = player.getWorld();
         this.experience = player.getExp();
         this.totalExperience = player.getTotalExperience();
         this.level = player.getLevel();
@@ -114,8 +116,9 @@ public class SMPlayerState {
 
         String path = "state/" + player.getUniqueId() + "." + timestampStr;
 
+        SMConfig.set(path + ".world", world);
         SMConfig.set(path + ".game-mode", gameMode.name());
-        SMConfig.set(path + ".location", SMUtilsLocation.toString(location));
+        SMConfig.set(path + ".location", SMUtilsLocation.toMap(location, true, true));
 
         if(experience != 0.0f) SMConfig.set(path + ".experience", experience);
         if(totalExperience != 0) SMConfig.set(path + ".total-experience", totalExperience);
@@ -134,6 +137,16 @@ public class SMPlayerState {
         SMConfig.set(path + ".ender-chest", SMUtilsSerializer.serializeItemStacks(enderChest));
         SMConfig.set(path + ".armor-contents", SMUtilsSerializer.serializeItemStacks(armorContents));
 
+        SMConfig.save(path);
+    }
+
+    /**
+     * Remove this state from the disk
+     */
+    public void remove() {
+        String timestampStr = timestamp.format(formatter);
+        String path = "state/" + player.getUniqueId();
+        SMConfig.remove(path + "." + timestampStr);
         SMConfig.save(path);
     }
 
@@ -203,21 +216,23 @@ public class SMPlayerState {
                 }
             }
 
-            Location location = SMUtilsLocation.fromString(SMConfig.getString(path + ".location"));
+            Location location = SMUtilsLocation.fromMap(SMConfig.getMap(path + ".location"));
             if(location == null) {
                 return;
             }
 
             if(world != null) {
-                if(!world.equals(location.getWorld())) {
+                String findWorldName = SMUtilsWorld.getOverworldName(world.getName());
+
+                if(!findWorldName.equalsIgnoreCase(SMConfig.getString(path + ".world", ""))) {
                     return;
                 }
             }
 
             state.timestamp = LocalDateTime.parse(key, formatter);
             state.gameMode = GameMode.valueOf(SMConfig.getString(path + ".game-mode", state.gameMode.name()));
-            state.world = state.location.getWorld();
-
+            state.world = SMConfig.getString(path + ".world");
+            state.location = SMUtilsLocation.fromMap(SMConfig.getMap(path + ".location"));
             state.experience = SMConfig.getFloat(path + ".experience", state.experience);
             state.totalExperience = SMConfig.getInt(path + ".total-experience", state.totalExperience);
             state.level = SMConfig.getInt(path + ".level", state.level);
@@ -253,34 +268,5 @@ public class SMPlayerState {
         };
 
         keys.sort(timestampComparator);
-    }
-
-    /**
-     * Cleanup the player state data by removing states beyond the storage limits
-     *
-     * @param player The player to clean up
-     * @param gameMode The game mode to clean up
-     */
-    private static void cleanup(Player player, GameMode gameMode) {
-        int maxStatesPerGameMode = 10;
-        String pathPrefix = "state/" + player.getUniqueId();
-        List<String> keys = SMConfig.getKeys(pathPrefix);
-        String gameModeStr = gameMode.name();
-        List<String> foundKeys = new ArrayList<>();
-
-        sortStateKeys(keys);
-        keys.forEach(key -> {
-            String path = pathPrefix + "." + key;
-            if(SMConfig.getString(path + ".game-mode").equalsIgnoreCase(gameModeStr)) {
-                foundKeys.add(key);
-            }
-        });
-
-        if (foundKeys.size() > maxStatesPerGameMode) {
-            List<String> keysToRemove = foundKeys.subList(maxStatesPerGameMode, foundKeys.size());
-            keysToRemove.forEach(key -> remove(pathPrefix + "." + key));
-        }
-
-        SMConfig.save(pathPrefix);
     }
 }

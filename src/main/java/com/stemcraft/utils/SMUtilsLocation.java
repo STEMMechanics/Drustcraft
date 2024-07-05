@@ -1,8 +1,12 @@
 package com.stemcraft.utils;
 
+import com.stemcraft.STEMCraft;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+
+import java.util.HashMap;
+import java.util.Objects;
 
 public class SMUtilsLocation {
 
@@ -84,7 +88,7 @@ public class SMUtilsLocation {
         }
 
         if(includeWorld) {
-            result = location.getWorld().getName() + "," + result;
+            result = Objects.requireNonNull(location.getWorld()).getName() + "," + result;
         }
 
         return result;
@@ -92,5 +96,124 @@ public class SMUtilsLocation {
 
     public static String toString(Location location) {
         return toString(location, true, true);
+    }
+
+
+    /**
+     * Convert Hash  Map to Location
+     * @param map The map to convert
+     * @param world The world to use if missing from the map
+     * @return The converted location
+     */
+    public static Location fromMap(HashMap<String, Object> map, World world) {
+        World locationWorld = world;
+
+        if(map.containsKey("world")) {
+            locationWorld = Bukkit.getWorld((String) map.get("world"));
+            if(locationWorld == null) {
+                return null;
+            }
+        }
+
+        if(!map.containsKey("x") || !map.containsKey("y") || !map.containsKey("z")) {
+            return null;
+        }
+
+        Location location = new Location(locationWorld, (double)map.get("x"), (double)map.get("y"), (double)map.get("z"));
+
+        if(map.containsKey("pitch")) {
+            location.setPitch(parseNumber(map.get("pitch"), Float.class));
+        }
+
+        if(map.containsKey("yaw")) {
+            location.setPitch(parseNumber(map.get("yaw"), Float.class));
+        }
+
+        return location;
+    }
+
+    public static Location fromMap(HashMap<String, Object> map) {
+        return fromMap(map, null);
+    }
+
+    /**
+     * Convert Location to a Hash Map
+     * @param location The location to convert
+     * @param includePitchYaw Include the pitch/yaw in the string
+     * @param includeWorld Include the world name in the string
+     * @return The converted location
+     */
+    public static HashMap<String, Object> toMap(Location location, boolean includePitchYaw, boolean includeWorld) {
+        HashMap<String, Object> map = new HashMap<>();
+
+        map.put("x", location.getX());
+        map.put("y", location.getY());
+        map.put("z", location.getZ());
+
+        if(includePitchYaw) {
+            map.put("pitch", location.getPitch());
+            map.put("yaw", location.getYaw());
+        }
+
+        if(includeWorld && location.getWorld() != null) {
+            map.put("world", location.getWorld().getName());
+        }
+
+        return map;
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private static <T extends Number> T parseNumber(Object value, Class<T> clazz, T defaultValue) {
+        if(defaultValue == null) {
+            try {
+                if (clazz == Integer.class) {
+                    defaultValue = clazz.getConstructor(int.class).newInstance(0);
+                } else if (clazz == Float.class) {
+                    defaultValue = clazz.getConstructor(float.class).newInstance(0.0f);
+                } else if (clazz == Double.class) {
+                    defaultValue = clazz.getConstructor(double.class).newInstance(0.0);
+                }
+            } catch(Exception e) {
+                STEMCraft.error(e);
+            }
+        }
+
+        if (value == null) {
+            return defaultValue;
+        }
+
+        if (clazz.isInstance(value)) {
+            return clazz.cast(value);
+        }
+
+        if (value instanceof Number num) {
+            if (clazz == Integer.class) {
+                return clazz.cast(num.intValue());
+            } else if (clazz == Float.class) {
+                return clazz.cast(num.floatValue());
+            } else if (clazz == Double.class) {
+                return clazz.cast(num.doubleValue());
+            }
+        } else if (value instanceof String) {
+            try {
+                String strValue = (String) value;
+                if (clazz == Integer.class) {
+                    return clazz.cast(Integer.parseInt(strValue));
+                } else if (clazz == Float.class) {
+                    return clazz.cast(Float.parseFloat(strValue));
+                } else if (clazz == Double.class) {
+                    return clazz.cast(Double.parseDouble(strValue));
+                }
+            } catch (NumberFormatException e) {
+                return defaultValue;
+            }
+        }
+
+        return defaultValue;
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private static <T extends Number> T parseNumber(Object value, Class<T> clazz) {
+        return parseNumber(value, clazz, null);
     }
 }

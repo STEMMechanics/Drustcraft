@@ -1,17 +1,31 @@
 package com.stemcraft;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SMCommandArgs {
     private final boolean fromConsole;
-    private final String[] args;
+    private final List<String> args;
+    private final List<String> dashArgs;
     private int index = 0;
     private int length;
 
-    public SMCommandArgs(boolean fromConsole, String[] args) {
+    public SMCommandArgs(boolean fromConsole, String[] inputArgs) {
         this.fromConsole = fromConsole;
-        this.args = args;
-        this.length = args.length;
-    }
 
+        this.args = new ArrayList<>();
+        this.dashArgs = new ArrayList<>();
+
+        for (String arg : inputArgs) {
+            if (arg.startsWith("-")) {
+                dashArgs.add(arg.substring(1).toLowerCase());
+            } else {
+                args.add(arg);
+            }
+        }
+
+        this.length = args.size();
+    }
     public boolean isEmpty() {
         return length == 0;
     }
@@ -28,34 +42,36 @@ public class SMCommandArgs {
         return index < length;
     }
 
+    public boolean hasDashArg(String arg) {
+        return dashArgs.contains(arg.toLowerCase());
+    }
+
     public String next() {
         if(index < length) {
-            return args[index++];
+            return args.get(index++);
         }
         return null;
     }
 
     public String peek() {
         if(index < length) {
-            return args[index];
+            return args.get(index);
         }
         return null;
     }
 
     public String last() {
         if(length > 0) {
-            return args[length - 1];
+            return args.get(length - 1);
         }
         return null;
     }
 
-    public String[] remaining() {
-        String[] remaining = new String[args.length - index];
-        System.arraycopy(args, index, remaining, 0, remaining.length);
-        return remaining;
+    public List<String> remaining() {
+        return args.subList(index, args.size());
     }
 
-    public String[] all() {
+    public List<String> all() {
         return args;
     }
 
@@ -76,15 +92,17 @@ public class SMCommandArgs {
         }
 
         // Check if the pattern is in the format of "{x}"
-        if (pattern.matches("\\{.+?\\}")) {
+        if (pattern.matches("\\{.+?}")) {
             SMTabCompletion<?> tabCompletion = STEMCraft.getTabCompletion(pattern.substring(1, pattern.length() - 1));
             if (tabCompletion != null) {
+                //noinspection unchecked
                 return (T) tabCompletion.resolve(currentArg);
             }
         } else if (pattern.contains("|")) {
             String[] options = pattern.split("\\|");
             for (String option : options) {
                 if (currentArg.equalsIgnoreCase(option.trim())) {
+                    //noinspection unchecked
                     return (T) currentArg;
                 }
             }
@@ -105,10 +123,11 @@ public class SMCommandArgs {
             return new SMCommandArgResult<>(defaultValue, "", false);
         }
 
-        if (pattern.matches("\\{.+?\\}")) {
+        if (pattern.matches("\\{.+?}")) {
             SMTabCompletion<?> tabCompletion = STEMCraft.getTabCompletion(pattern.substring(1, pattern.length() - 1));
             if (tabCompletion != null) {
                 index++;
+                //noinspection unchecked
                 return new SMCommandArgResult<>((T) tabCompletion.resolve(currentArg), currentArg, true);
             }
         } else if (pattern.contains("|")) {
@@ -116,6 +135,7 @@ public class SMCommandArgs {
             for (String option : options) {
                 if (currentArg.equalsIgnoreCase(option.trim())) {
                     index++;
+                    //noinspection unchecked
                     return new SMCommandArgResult<>((T)currentArg, currentArg, true);
                 }
             }
@@ -138,10 +158,11 @@ public class SMCommandArgs {
 
     public <T> T shiftOption(String key, String pattern, T defaultValue) {
         for (int i = 0; i < length; i++) {
-            if (args[i].startsWith(key + ":")) {
-                String value = args[i].substring(key.length() + 1);
+            if (args.get(i).startsWith(key + ":")) {
+                String value = args.get(i).substring(key.length() + 1);
                 if (value.matches(pattern)) {
                     index++;
+                    //noinspection unchecked
                     return (T) value;
                 }
             }
@@ -164,10 +185,11 @@ public class SMCommandArgs {
             return new SMCommandArgResult<>(defaultValue, "", false);
         }
 
-        if (pattern.matches("\\{.+?\\}")) {
+        if (pattern.matches("\\{.+?}")) {
             SMTabCompletion<?> tabCompletion = STEMCraft.getTabCompletion(pattern.substring(1, pattern.length() - 1));
             if (tabCompletion != null) {
                 length--;
+                //noinspection unchecked
                 return new SMCommandArgResult<>((T) tabCompletion.resolve(currentArg), currentArg, true);
             }
         } else if (pattern.contains("|")) {
@@ -175,6 +197,7 @@ public class SMCommandArgs {
             for (String option : options) {
                 if (currentArg.equalsIgnoreCase(option.trim())) {
                     length--;
+                    //noinspection unchecked
                     return new SMCommandArgResult<>((T)currentArg, currentArg, true);
                 }
             }

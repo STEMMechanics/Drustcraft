@@ -3,6 +3,7 @@ package com.stemcraft;
 import com.stemcraft.utils.SMUtilsString;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
+import dev.dejvokep.boostedyaml.libs.org.snakeyaml.engine.v2.common.FlowStyle;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
@@ -65,6 +66,7 @@ public class SMConfig {
      * @param path The configuration path.
      * @param reload Reload the configuration file.
      */
+    @SuppressWarnings("SameParameterValue")
     private static YamlDocument load(String path, Boolean reload) {
         String name = getFileFromPath(path);
         String filePath = getFileFromPath(path, true);
@@ -94,7 +96,7 @@ public class SMConfig {
                         new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8)),
                         GeneralSettings.builder().setKeyFormat(GeneralSettings.KeyFormat.OBJECT).build(),
                         LoaderSettings.DEFAULT,
-                        DumperSettings.DEFAULT,
+                        DumperSettings.builder().setFlowStyle(FlowStyle.AUTO).build(),
                         UpdaterSettings.DEFAULT);
 
                 files.put(name, yamlFile);
@@ -125,6 +127,7 @@ public class SMConfig {
         return getFile(path, true);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static YamlDocument getFile(String path, boolean loadIfNotExists) {
         if(files.containsKey(getFileFromPath(path))) {
             return files.get(getFileFromPath(path));
@@ -187,8 +190,8 @@ public class SMConfig {
     /**
      * Set key value in config.
      *
-     * @param path
-     * @param value
+     * @param path The path to the key to set
+     * @param value The value to set the key
      */
     public static void set(String path, Object value) {
         set(path, value, "");
@@ -197,16 +200,15 @@ public class SMConfig {
     /**
      * Set key value in config.
      *
-     * @param path
-     * @param value
-     * @param comment
+     * @param path The path to the key to set
+     * @param value The value to set the key
+     * @param comment The key comment
      */
     public static void set(String path, Object value, String comment) {
         YamlDocument file = getFile(path);
         String key = getKeyFromPath(path);
         if (file != null) {
             file.set(key, value);
-
             if (comment != null && !comment.isEmpty()) {
                 file.getBlock(key).addComment(comment);
             }
@@ -216,7 +218,7 @@ public class SMConfig {
     /**
      * remove key value in config.
      *
-     * @param path
+     * @param path The path to the key to remove
      */
     public static void remove(String path) {
         YamlDocument file = getFile(path);
@@ -804,6 +806,34 @@ public class SMConfig {
         return resultMap;
     }
 
+    public static HashMap<String, Object> getMap(String path) {
+        try {
+            YamlDocument file = getFile(path);
+            String key = getKeyFromPath(path);
+
+            if (file != null) {
+                return convertSection(file.getSection(key));
+            }
+        } catch (Exception e) {
+            /* nothing */
+        }
+
+        return new HashMap<>();
+    }
+
+    private static HashMap<String, Object> convertSection(Section section) {
+        HashMap<String, Object> map = new HashMap<>();
+        for (Object objKey : section.getKeys()) {
+            String key = objKey.toString();
+            Object value = section.get(key);
+            if (value instanceof Section) {
+                map.put(key, convertSection((Section)value));
+            } else {
+                map.put(key, value);
+            }
+        }
+        return map;
+    }
     /**
      * Fetches a list of keys from the root.
      *

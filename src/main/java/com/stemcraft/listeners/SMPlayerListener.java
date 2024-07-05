@@ -72,8 +72,8 @@ public class SMPlayerListener extends SMListener {
             smPlayer.resetFlySpeed();
             smPlayer.resetWalkSpeed();
 
+            smPlayer.saveState();
             if(!SMUtilsWorld.getOverworldName(Objects.requireNonNull(event.getFrom().getWorld()).getName()).equalsIgnoreCase(SMUtilsWorld.getOverworldName(Objects.requireNonNull(event.getTo().getWorld()).getName()))) {
-                smPlayer.saveState();
                 STEMCraft.runLater(() -> {
                     SMPlayerState state = smPlayer.getLastState(event.getTo().getWorld(), event.getPlayer().getGameMode());
                     state.restore();

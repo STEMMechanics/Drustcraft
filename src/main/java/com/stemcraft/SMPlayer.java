@@ -101,6 +101,10 @@ public class SMPlayer {
     public SMPlayerState getLastState(World world, GameMode gameMode) {
         List<SMPlayerState> states = SMPlayerState.find(player, world, gameMode);
         if(!states.isEmpty()) {
+            if(states.size() > 5){
+                STEMCraft.runLater(() -> states.subList(5, states.size()).forEach(SMPlayerState::remove));
+            }
+
             return states.get(0);
         }
 

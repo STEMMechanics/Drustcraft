@@ -10,6 +10,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.plugin.Plugin;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 public class SMCommand implements TabCompleter {
     /**
@@ -36,7 +37,7 @@ public class SMCommand implements TabCompleter {
     /**
      * Command tab completion data
      */
-    private List<String[]> tabCompletionList = new ArrayList<>();
+    private final List<String[]> tabCompletionList = new ArrayList<>();
 
     /**
      * Constructor
@@ -130,10 +131,18 @@ public class SMCommand implements TabCompleter {
         }
     }
 
+    /**
+     * Return the usage string of the command
+     * @return The usage string
+     */
     public String usage() {
         return "/" + label;
     }
 
+    /**
+     * Execute the command
+     * @param ctx The command context
+     */
     public void execute(SMCommandContext ctx) {
         ctx.error("Command not implemented");
     }
@@ -256,7 +265,7 @@ public class SMCommand implements TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
         List<String> tabCompletionResults = new ArrayList<>();
         List<String> optionArgsAvailable = new ArrayList<>();
         Map<String, List<String>> valueOptionArgsAvailable = new HashMap<>();
@@ -333,14 +342,7 @@ public class SMCommand implements TabCompleter {
             }
 
             // remove items in tabCompletionResults that do not contain the current arg text
-            Iterator<String> iterator = tabCompletionResults.iterator();
-
-            while (iterator.hasNext()) {
-                String item = iterator.next();
-                if (!item.contains(arg)) {
-                    iterator.remove();
-                }
-            }
+            tabCompletionResults.removeIf(item -> !item.contains(arg));
         }
 
         return tabCompletionResults;

@@ -22,29 +22,20 @@ import java.io.FileInputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.sql.PreparedStatement;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
-import java.util.logging.Logger;
 
 import com.stemcraft.interfaces.SMCallback;
 import com.stemcraft.utils.SMUtilsString;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
-import org.bukkit.World;
-import org.bukkit.WorldCreator;
 import org.bukkit.command.CommandMap;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.server.PluginDisableEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import lombok.NonNull;
@@ -82,7 +73,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
     private static final HashMap<Player, SMPlayer> playerList = new HashMap<>();
     private static final HashMap<String, SMTabCompletion<?>> tabCompletions = new HashMap<>();
 
-    private static List<SMTimer> timers = new ArrayList<>();
+    private static final List<SMTimer> timers = new ArrayList<>();
 
     /**
      * The display version. Can be set in config. Defaults to plugin version.
@@ -143,6 +134,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
         }
 
         if (!getDataFolder().exists()) {
+            //noinspection ResultOfMethodCallIgnored
             getDataFolder().mkdir();
         }
 
@@ -179,7 +171,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
         });
 
         loadPackageClasses("listeners", Listener.class, instance -> {
-            Bukkit.getPluginManager().registerEvents((Listener) instance, this);
+            Bukkit.getPluginManager().registerEvents(instance, this);
             return true;
         });
 
@@ -196,6 +188,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
         SMSkipNight.initialize();
         SMRegion.loadRegions();
         SMWebServer.start();
+        SMBackup.initialize();
 
         STEMCraft.runTimer(20, 1, () -> {
             for (SMTimer timer : timers) {
@@ -267,7 +260,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            STEMCraft.error(e);
         }
     }
 
@@ -302,6 +295,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
      * @param handler The instance handler. Return boolean to filter instances.
      * @return A map of class names to instances.
      */
+    @SuppressWarnings({"UnusedReturnValue", "ClassEscapesDefinedScope"})
     public static <T> Map<String, T> loadPackageClasses(String path, Class<T> baseClass, InstanceHandler<T> handler) {
         Map<String, T> objectList = new HashMap<>();
 
@@ -331,6 +325,13 @@ public class STEMCraft extends JavaPlugin implements Listener {
         });
 
         return objectList;
+    }
+
+    /**
+     * Send an server broadcast
+     */
+    public static void broadcast(String message) {
+        Bukkit.broadcastMessage(ChatColor.COLOR_CHAR + "e[SERVER] " + SMUtilsString.colorize(message));
     }
 
     /**
@@ -368,18 +369,20 @@ public class STEMCraft extends JavaPlugin implements Listener {
         do {
             lines.add(throwable == null ? "Unknown error" : throwable.getClass().getSimpleName() + " " + SMUtilsString.getOrDefault(throwable.getMessage(), throwable.getLocalizedMessage(), "(Unknown cause)"));
 
-            int count = 0;
-            for(StackTraceElement element : throwable.getStackTrace()) {
-                count++;
-                final String trace = element.toString();
-                if(trace.contains("sun.reflect"))
-                    continue;
-                if(count > 6 && trace.startsWith("net.minecraft.server"))
-                    break;
+            if(throwable != null) {
+                int count = 0;
+                for (StackTraceElement element : throwable.getStackTrace()) {
+                    count++;
+                    final String trace = element.toString();
+                    if (trace.contains("sun.reflect"))
+                        continue;
+                    if (count > 6 && trace.startsWith("net.minecraft.server"))
+                        break;
 
-                lines.add("    at " + trace);
+                    lines.add("    at " + trace);
+                }
             }
-        } while((throwable = throwable.getCause()) != null);
+        } while((throwable = Objects.requireNonNull(throwable).getCause()) != null);
 
         severe(String.join("\n", lines));
     }
@@ -391,6 +394,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
      * @param runnable The task to run.
      * @return The task.
      */
+    @SuppressWarnings("UnusedReturnValue")
     public static SMTask runLater(final Runnable runnable) {
         return runLater(1, runnable);
     }
@@ -538,6 +542,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
      * Run a callback once after a delay. Calls with the same id will cancel within the delay will cancel the original
      * callback.
      */
+    @SuppressWarnings("UnusedReturnValue")
     public static SMTask runOnceDelay(final String id, final long delayTicks, final SMCallback callback) {
         if (runOnceMapDelay.containsKey(id)) {
             runOnceMapDelay.get(id).cancel();
