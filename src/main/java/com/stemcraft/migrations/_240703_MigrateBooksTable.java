@@ -41,7 +41,7 @@ public class _240703_MigrateBooksTable extends SMDatabaseMigration {
             String sql = "DROP TABLE books";
             statement = SMDatabase.prepareStatement("DROP TABLE books");
             assert statement != null;
-            statement.executeQuery();
+            statement.execute();
             statement.close();
         } catch (Exception e) {
             STEMCraft.error(e);
