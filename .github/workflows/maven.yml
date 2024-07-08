@@ -26,6 +26,8 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
         cache: maven
+        cache-dependency-path: | # optional
+          pom.xml
 
     - name: Build with Maven
       run: mvn -B package --file pom.xml
