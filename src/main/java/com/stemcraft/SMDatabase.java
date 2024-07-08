@@ -7,6 +7,7 @@ import org.sqlite.SQLiteDataSource;
 import com.stemcraft.interfaces.SMSQLConsumer;
 import com.stemcraft.exceptions.SMException;
 
+@SuppressWarnings("ALL")
 public class SMDatabase {
     private static Connection connection = null;
     private static final String DATABASE_NAME = "database.db";
@@ -41,7 +42,7 @@ public class SMDatabase {
             initialize();
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
+            STEMCraft.error(e);
         }
 
         return false;
@@ -70,7 +71,32 @@ public class SMDatabase {
             "CREATE TABLE IF NOT EXISTS " + tableName + " (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)";
 
         try (Statement statement = SMDatabase.connection.createStatement()) {
-            statement.execute(createTableSQL);
+            String checkTableExistsSQL = "SELECT name FROM sqlite_master WHERE type='table' AND name='" + tableName + "'";
+            ResultSet tableExists = statement.executeQuery(checkTableExistsSQL);
+
+            if (tableExists.next()) {
+                // Check if the 'migration' column exists in the table
+                String checkColumnExistsSQL = "PRAGMA table_info(" + tableName + ")";
+                ResultSet columnExists = statement.executeQuery(checkColumnExistsSQL);
+                boolean hasMigrationColumn = false;
+
+                while (columnExists.next()) {
+                    String columnName = columnExists.getString("name");
+                    if (columnName.equals("migration")) {
+                        hasMigrationColumn = true;
+                        break;
+                    }
+                }
+
+                if (hasMigrationColumn) {
+                    // Rename the 'migration' column to 'name'
+                    String renameColumnSQL = "ALTER TABLE " + tableName + " RENAME COLUMN migration TO name";
+                    statement.execute(renameColumnSQL);
+                }
+            } else {
+                // Create the table if it doesn't exist
+                statement.execute(createTableSQL);
+            }
         } catch (SQLException e) {
             STEMCraft.error(e);
         }
@@ -79,8 +105,8 @@ public class SMDatabase {
     /**
      * Prepare a database statement.
      * 
-     * @param statement
-     * @return
+     * @param statement The SQLite statement to prepare.
+     * @return The PreparedStatement or null.
      */
     public static PreparedStatement prepareStatement(String statement) {
         if (connection != null) {
@@ -97,8 +123,8 @@ public class SMDatabase {
     /**
      * Run a database migration if it is not yet executed in the database.
      * 
-     * @param name
-     * @param callback
+     * @param name The migration name.
+     * @param callback The callback to call after the migration or null.
      */
     public static void runMigration(String name, SMSQLConsumer callback) throws SMException {
         if (!isConnected()) {
@@ -118,7 +144,7 @@ public class SMDatabase {
                 try {
                     callback.accept();
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    STEMCraft.error(e);
                 }
 
                 statement = connection.prepareStatement("INSERT INTO migration (name) VALUES (?)");
@@ -129,7 +155,7 @@ public class SMDatabase {
             resultSet.close();
             statement.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            STEMCraft.error(e);
         }
     }
 
