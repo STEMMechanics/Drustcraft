@@ -107,7 +107,7 @@ public class SMCommandWorld extends SMCommand {
         } else if(action.equalsIgnoreCase("list")) {
             Collection<String> worlds = SMWorld.list();
 
-            new SMPaginate(ctx.sender, 1)
+            new SMPaginate(ctx.sender, ctx.args.shift("{int}", 1))
                 .count(worlds.size())
                 .command("world list")
                 .title("Worlds")
