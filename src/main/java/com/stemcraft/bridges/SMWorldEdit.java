@@ -4,6 +4,7 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Polygonal2DRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
@@ -68,11 +69,19 @@ public class SMWorldEdit {
         List<Location> points = new ArrayList<>();
 
         if (region instanceof Polygonal2DRegion polyRegion) {
-            for (com.sk89q.worldedit.math.BlockVector2 point : polyRegion.getPoints()) {
-                points.add(new Location(player.getWorld(), point.getX(), region.getMinimumPoint().getY(), point.getZ()));
+            int size = polyRegion.getPoints().size();
+            int minY = region.getMinimumPoint().getY();
+            int maxY = region.getMaximumPoint().getY();
+
+            points.add(new Location(player.getWorld(), polyRegion.getPoints().get(0).getX(), minY, polyRegion.getPoints().get(0).getZ()));
+
+            for (int i = 1; i < size - 1; i++) {
+                com.sk89q.worldedit.math.BlockVector2 point = polyRegion.getPoints().get(i);
+                points.add(new Location(player.getWorld(), point.getX(), maxY, point.getZ()));
             }
-        } else {
-            // For non-polygon selections, just use min and max points
+
+            points.add(new Location(player.getWorld(), polyRegion.getPoints().get(size - 1).getX(), minY, polyRegion.getPoints().get(size - 1).getZ()));
+        } else if(region instanceof CuboidRegion) {
             points.add(BukkitAdapter.adapt(player.getWorld(), region.getMinimumPoint()));
             points.add(BukkitAdapter.adapt(player.getWorld(), region.getMaximumPoint()));
         }
@@ -113,6 +122,9 @@ public class SMWorldEdit {
             selector = new Polygonal2DRegionSelector(world);
             SelectorLimits limits = PermissiveSelectorLimits.getInstance();
 
+            for(Location loc : points) {
+                STEMCraft.info(String.valueOf(loc.getBlockY()));
+            }
 
             boolean isFirst = true;
             for (Location point : points) {

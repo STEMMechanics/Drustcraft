@@ -17,6 +17,9 @@ public class SMRegion {
     private static HashMap<String, SMRegion> regionList = new HashMap<>();
     private static HashMap<Player, List<SMRegion>> playerRegionList = new HashMap<>();
 
+    public static final String TYPE_CUBOID = "cuboid";
+    public static final String TYPE_POLY2D = "poly2d";
+
     private String name;
     private List<Location> points;
     private int priority;
@@ -66,7 +69,7 @@ public class SMRegion {
      * Save a region to disk
      */
     public void save() {
-        if(name == null || name.isEmpty() || points == null || points.isEmpty()) {
+        if(name == null || name.isEmpty() || points == null || points.isEmpty() || points.size() < 2) {
             return;
         }
 
@@ -76,9 +79,45 @@ public class SMRegion {
         SMConfig.set(path + ".world", Objects.requireNonNull(points.get(0).getWorld()).getName());
         SMConfig.set(path + ".priority", priority);
 
-        for(int i = 0; i < points.size(); i++) {
-            Location location = points.get(i);
-            SMConfig.set(path + ".points." + i, location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ());
+        if(points.size() == 2) {
+            SMConfig.set(path + ".type", SMRegion.TYPE_CUBOID);
+
+            Map<String, Integer> minPoint = Map.of(
+                    "x", points.get(0).getBlockX(),
+                    "y", points.get(0).getBlockY(),
+                    "z", points.get(0).getBlockZ()
+            );
+
+            Map<String, Integer> maxPoint = Map.of(
+                    "x", points.get(1).getBlockX(),
+                    "y", points.get(1).getBlockY(),
+                    "z", points.get(1).getBlockZ()
+            );
+
+            SMConfig.set(path + ".min", minPoint);
+            SMConfig.set(path + ".max", maxPoint);
+        } else {
+            SMConfig.set(path + ".type", SMRegion.TYPE_POLY2D);
+            List<Map<String, Integer>> pointList = new ArrayList<>();
+            int minY = Integer.MAX_VALUE;
+            int maxY = Integer.MIN_VALUE;
+
+            for (Location location : points) {
+                Map<String, Integer> point = Map.of(
+                        "x", location.getBlockX(),
+                        "z", location.getBlockZ()
+                );
+                pointList.add(point);
+
+                int y = location.getBlockY();
+                STEMCraft.info(String.valueOf(y));
+                minY = Math.min(minY, y);
+                maxY = Math.max(maxY, y);
+            }
+
+            SMConfig.set(path + ".points", pointList);
+            SMConfig.set(path + ".min-y", minY);
+            SMConfig.set(path + ".max-y", maxY);
         }
 
         if(teleportEnter != null && teleportEnter.getWorld() != null) {
@@ -110,6 +149,10 @@ public class SMRegion {
         SMRegion region = new SMRegion();
         region.name = name;
         region.points = points;
+
+        for(Location loc : points) {
+            STEMCraft.info(String.valueOf(loc.getBlockY()));
+        }
 
         regionList.put(name, region);
         region.save();
@@ -285,30 +328,77 @@ public class SMRegion {
                 return;
             }
 
-            List<String> pointNumbers = SMConfig.getKeys("regions." + name + ".points");
-            if(pointNumbers.isEmpty()) {
+            List<Location> points = new ArrayList<>();
+
+            String type = SMConfig.getString("regions." + name + ".type", "");
+            if(type.equalsIgnoreCase(SMRegion.TYPE_CUBOID)) {
+                Map<String, Object> minPointData = SMConfig.getMap("regions." + name + ".min");
+                Map<String, Object> maxPointData = SMConfig.getMap("regions." + name + ".max");
+
+                Object minXObj = minPointData.get("x");
+                Object minYObj = minPointData.get("y");
+                Object minZObj = minPointData.get("z");
+                Object maxXObj = maxPointData.get("x");
+                Object maxYObj = maxPointData.get("y");
+                Object maxZObj = maxPointData.get("z");
+
+                if (!(minXObj instanceof Integer) || !(minYObj instanceof Integer) || !(minZObj instanceof Integer) ||
+                        !(maxXObj instanceof Integer) || !(maxYObj instanceof Integer) || !(maxZObj instanceof Integer)) {
+                    return;
+                }
+
+                int minX = (int) minXObj;
+                int minY = (int) minYObj;
+                int minZ = (int) minZObj;
+                int maxX = (int) maxXObj;
+                int maxY = (int) maxYObj;
+                int maxZ = (int) maxZObj;
+
+                Location minLocation = new Location(world, minX, minY, minZ);
+                Location maxLocation = new Location(world, maxX, maxY, maxZ);
+
+                points.add(minLocation);
+                points.add(maxLocation);
+            } else if(type.equalsIgnoreCase(SMRegion.TYPE_POLY2D)) {
+                List<Map<?, ?>> pointList = SMConfig.getMapList("regions." + name + ".points");
+                int minY = SMConfig.getInt("regions." + name + ".min-y");
+                int maxY = SMConfig.getInt("regions." + name + ".max-y");
+
+                if (pointList == null || pointList.isEmpty()) {
+                    return;
+                }
+
+                Map<?, ?> firstPointData = pointList.get(0);
+                Object firstXObj = firstPointData.get("x");
+                Object firstZObj = firstPointData.get("z");
+
+                if (!(firstXObj instanceof Integer) || !(firstZObj instanceof Integer)) {
+                    return;
+                }
+
+                int firstX = (int) firstXObj;
+                int firstZ = (int) firstZObj;
+                points.add(new Location(world, firstX, maxY, firstZ));
+
+                for (int i = 1; i < pointList.size(); i++) {
+                    Map<?, ?> pointData = pointList.get(i);
+                    Object xObj = pointData.get("x");
+                    Object zObj = pointData.get("z");
+
+                    if (!(xObj instanceof Integer) || !(zObj instanceof Integer)) {
+                        return;
+                    }
+
+                    int x = (int) xObj;
+                    int z = (int) zObj;
+                    points.add(new Location(world, x, minY, z));
+                }
+            } else {
                 return;
             }
 
             SMRegion region = new SMRegion();
             region.name = name.toLowerCase();
-
-            List<Location> points = new ArrayList<>();
-            pointNumbers.forEach(pointIndex -> {
-                String[] values = SMConfig.getString("regions." + name + ".points." + pointIndex, "").split(",");
-                if(values.length >= 3) {
-                    try {
-                        double x = Double.parseDouble(values[0]);
-                        double y = Double.parseDouble(values[1]);
-                        double z = Double.parseDouble(values[2]);
-
-                        Location location = new Location(world, x, y, z);
-                        points.add(location);
-                    } catch (NumberFormatException e) {
-                        // Skip this point if any value can't be parsed as a double
-                    }
-                }
-            });
             region.points = points;
 
             if(SMConfig.contains("regions." + name + ".flags.teleport-enter")) {

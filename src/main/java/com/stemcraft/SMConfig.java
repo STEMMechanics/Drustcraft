@@ -821,6 +821,21 @@ public class SMConfig {
         return new HashMap<>();
     }
 
+    public static List<Map<?, ?>> getMapList(String path) {
+        try {
+            YamlDocument file = getFile(path);
+            String key = getKeyFromPath(path);
+
+            if (file != null) {
+                return file.getMapList(key);
+            }
+        } catch (Exception e) {
+            /* nothing */
+        }
+
+        return new ArrayList<>();
+    }
+
     private static HashMap<String, Object> convertSection(Section section) {
         HashMap<String, Object> map = new HashMap<>();
         for (Object objKey : section.getKeys()) {
