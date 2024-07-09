@@ -117,10 +117,14 @@ public class SMPlayerListener extends SMListener {
 
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent event) {
-        for(SMRegion region : SMRegion.playerRegions(event.getPlayer())) {
-            if(region.getAllowDrops() == Boolean.FALSE) {
-                event.setCancelled(true);
-                return;
+
+        /* handle region flags */
+        if(!event.getPlayer().hasPermission("stemcraft.region.override")) {
+            for (SMRegion region : SMRegion.playerRegions(event.getPlayer())) {
+                if (region.getAllowDrops() == Boolean.FALSE) {
+                    event.setCancelled(true);
+                    return;
+                }
             }
         }
 

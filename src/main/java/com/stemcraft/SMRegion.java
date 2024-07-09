@@ -268,19 +268,21 @@ public class SMRegion {
                         .filter(region -> !regionList.contains(region))
                         .toList();
 
-                for(SMRegion region : exitedRegions) {
-                    if(region.teleportExit != null && !skipFutureTeleports) {
-                        SMPlayer.teleport(player, region.teleportExit);
-                        skipEnterRegionEvent = true;
-                        skipFutureTeleports = true;
-                    }
-                }
-
-                if(!skipEnterRegionEvent) {
-                    for(SMRegion region : enteredRegions) {
-                        if(region.teleportEnter != null && !skipFutureTeleports) {
-                            SMPlayer.teleport(player, region.teleportEnter);
+                if(!player.hasPermission("stemcraft.region.override")) {
+                    for (SMRegion region : exitedRegions) {
+                        if (region.teleportExit != null && !skipFutureTeleports) {
+                            SMPlayer.teleport(player, region.teleportExit);
+                            skipEnterRegionEvent = true;
                             skipFutureTeleports = true;
+                        }
+                    }
+
+                    if (!skipEnterRegionEvent) {
+                        for (SMRegion region : enteredRegions) {
+                            if (region.teleportEnter != null && !skipFutureTeleports) {
+                                SMPlayer.teleport(player, region.teleportEnter);
+                                skipFutureTeleports = true;
+                            }
                         }
                     }
                 }
