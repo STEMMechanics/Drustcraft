@@ -1,7 +1,6 @@
 package com.stemcraft.tabcompletions;
 
 import com.stemcraft.SMTabCompletion;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;

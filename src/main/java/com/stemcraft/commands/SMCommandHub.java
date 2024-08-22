@@ -2,9 +2,6 @@ package com.stemcraft.commands;
 
 import com.stemcraft.SMCommand;
 import com.stemcraft.SMCommandContext;
-import org.bukkit.entity.Player;
-
-import java.util.List;
 
 public class SMCommandHub extends SMCommand {
 

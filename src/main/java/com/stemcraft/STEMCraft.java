@@ -27,6 +27,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
 import com.stemcraft.interfaces.SMCallback;
+import com.stemcraft.interfaces.SMConfigType;
 import com.stemcraft.utils.SMUtilsString;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -141,6 +142,11 @@ public class STEMCraft extends JavaPlugin implements Listener {
         if (!SMDatabase.isConnected()) {
             SMDatabase.connect();
         }
+
+        loadPackageClasses("configtypes", SMConfigType.class, instance -> {
+            instance.register();
+            return true;
+        });
 
         loadPackageClasses("migrations", SMDatabaseMigration.class, instance -> {
             String name = instance.getClass().getSimpleName();
@@ -352,6 +358,10 @@ public class STEMCraft extends JavaPlugin implements Listener {
      * Send a severe message to the console.
      */
     public static void severe(String message) {
+        Bukkit.getConsoleSender().sendMessage(ChatColor.COLOR_CHAR + "c" + SMUtilsString.colorize(message));
+    }
+
+    public static void error(String message) {
         Bukkit.getConsoleSender().sendMessage(ChatColor.COLOR_CHAR + "c" + SMUtilsString.colorize(message));
     }
 
@@ -599,6 +609,10 @@ public class STEMCraft extends JavaPlugin implements Listener {
         }
 
         return null;
+    }
+
+    public static <T> void addTabCompletion(String name, SMTabCompletion<T> completion) {
+        tabCompletions.put(name, completion);
     }
 
     public static SMTabCompletion<?> getTabCompletion(String name) {

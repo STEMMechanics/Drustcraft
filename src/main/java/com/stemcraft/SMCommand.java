@@ -2,7 +2,9 @@ package com.stemcraft;
 
 import java.lang.reflect.Constructor;
 import java.util.*;
+import java.util.function.Consumer;
 
+import lombok.Setter;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
@@ -38,6 +40,12 @@ public class SMCommand implements TabCompleter {
      * Command tab completion data
      */
     private final List<String[]> tabCompletionList = new ArrayList<>();
+
+    /**
+     * The custom execution handler
+     */
+    @Setter
+    private Consumer<SMCommandContext> executionHandler;
 
     /**
      * Constructor
@@ -144,7 +152,11 @@ public class SMCommand implements TabCompleter {
      * @param ctx The command context
      */
     public void execute(SMCommandContext ctx) {
-        ctx.error("Command not implemented");
+        if (executionHandler != null) {
+            executionHandler.accept(ctx);
+        } else {
+            ctx.error("Command not implemented");
+        }
     }
 
     private static class TabCompleteValueOption {

@@ -2,11 +2,7 @@ package com.stemcraft.tabcompletions;
 
 import com.stemcraft.SMConfig;
 import com.stemcraft.SMTabCompletion;
-import com.stemcraft.STEMCraft;
-import org.bukkit.Bukkit;
-import org.bukkit.World;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class SMTabCompletionBook extends SMTabCompletion<String> {

@@ -11,8 +11,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.geysermc.geyser.api.GeyserApi;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SMPlayer {
     private final Player player;
@@ -25,6 +24,23 @@ public class SMPlayer {
 
     private static Boolean geyserInstalled = null;
     private static GeyserApi geyserApi = null;
+    private static final Map<UUID, PlayerState> playerFreezeStates = new HashMap<>();
+
+    private static final List<World> ignorePlayerStateWorld = new ArrayList<>();
+
+    private static class PlayerState {
+        float walkSpeed;
+        float flySpeed;
+        GameMode gameMode;
+        boolean collidable;
+
+        PlayerState(Player player) {
+            this.walkSpeed = player.getWalkSpeed();
+            this.flySpeed = player.getFlySpeed();
+            this.gameMode = player.getGameMode();
+            this.collidable = player.isCollidable();
+        }
+    }
 
     public SMPlayer(Player player) {
         this.player = player;
@@ -54,7 +70,16 @@ public class SMPlayer {
      * @param location The location to teleport the player
      */
     public static void teleport(Player player, Location location) {
-        STEMCraft.runLater(() -> player.teleport(location));
+        teleport(player, location, null);
+    }
+
+    public static void teleport(Player player, Location location, Runnable runnable) {
+        STEMCraft.runLater(() -> {
+            player.teleport(location);
+            if(runnable != null) {
+                runnable.run();
+            }
+        });
     }
 
     /**
@@ -98,22 +123,26 @@ public class SMPlayer {
         }
     }
 
-    public SMPlayerState getLastState(World world, GameMode gameMode) {
-        List<SMPlayerState> states = SMPlayerState.find(player, world, gameMode);
-        if(!states.isEmpty()) {
-            if(states.size() > 5){
-                STEMCraft.runLater(() -> states.subList(5, states.size()).forEach(SMPlayerState::remove));
-            }
+    public static SMPlayerState getLastState(Player player, World world, GameMode gameMode) {
+        if(!ignorePlayerStateWorld.contains(world)) {
+            List<SMPlayerState> states = SMPlayerState.find(player, world, gameMode);
+            if (!states.isEmpty()) {
+                if (states.size() > 5) {
+                    STEMCraft.runLater(() -> states.subList(5, states.size()).forEach(SMPlayerState::remove));
+                }
 
-            return states.get(0);
+                return states.get(0);
+            }
         }
 
         return new SMPlayerState(player);
     }
 
     public static void saveState(Player player) {
-        SMPlayerState state = new SMPlayerState(player);
-        state.save();
+        if(!ignorePlayerStateWorld.contains(player.getWorld())) {
+            SMPlayerState state = new SMPlayerState(player);
+            state.save();
+        }
     }
 
     public void saveState() {
@@ -191,5 +220,54 @@ public class SMPlayer {
 
     public static Boolean give(Player player, ItemStack item) {
         return give(player, item, false, false);
+    }
+
+    /**
+     * Freeze the player and prevent from moving or being attacked
+     * @param player The player to freeze
+     */
+    public static void freeze(Player player) {
+        UUID playerUUID = player.getUniqueId();
+
+        // Check if the player is already frozen
+        if (playerFreezeStates.containsKey(playerUUID)) {
+            return; // Player is already frozen, do nothing
+        }
+
+        // Save current state and apply freeze effects
+        playerFreezeStates.put(playerUUID, new PlayerState(player));
+
+        player.setWalkSpeed(0);
+        player.setFlySpeed(0);
+        player.setGameMode(GameMode.ADVENTURE);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 128));
+        player.setCollidable(false);
+    }
+
+    /**
+     * Unfreeze the player if they have been frozen
+     * @param player The player to unfreeze
+     */
+    public static void unfreeze(Player player) {
+        UUID playerUUID = player.getUniqueId();
+        PlayerState originalState = playerFreezeStates.remove(playerUUID);
+
+        if (originalState != null) {
+            // Restore original state
+            player.setWalkSpeed(originalState.walkSpeed);
+            player.setFlySpeed(originalState.flySpeed);
+            player.setGameMode(originalState.gameMode);
+            player.removePotionEffect(PotionEffectType.JUMP);
+            player.setCollidable(originalState.collidable);
+        }
+    }
+
+    /**
+     * Return if the player is currently frozen
+     * @param player The player to check
+     * @return If the player is frozen
+     */
+    public static boolean isFrozen(Player player) {
+        return playerFreezeStates.containsKey(player.getUniqueId());
     }
 }

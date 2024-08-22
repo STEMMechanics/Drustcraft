@@ -1,5 +1,6 @@
 package com.stemcraft;
 
+import com.stemcraft.interfaces.SMConfigType;
 import com.stemcraft.utils.SMUtilsString;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
@@ -23,6 +24,30 @@ import java.util.Map;
 public class SMConfig {
     private static final Map<String, YamlDocument> files = new HashMap<>();
     private static final Map<String, YamlDocument> defaults = new HashMap<>();
+    private static final Map<Class<?>, SMConfigType<?>> types = new HashMap<>();
+
+    public static void registerType(Class<?> type, SMConfigType<?> typeClass) {
+        types.put(type, typeClass);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T getType(Class<T> type, String path) {
+        if (types.containsKey(type)) {
+            return (T) types.get(type).load(path);
+        } else {
+            throw new IllegalArgumentException("No type registered for class: " + type.getName());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> void setType(Class<T> type, String path, T value) {
+        SMConfigType<T> configType = (SMConfigType<T>) types.get(type);
+        if (configType != null) {
+            configType.save(path, value);
+        } else {
+            throw new IllegalArgumentException("No type registered for class: " + type.getName());
+        }
+    }
 
     private static String getFileFromPath(String path) {
         return getFileFromPath(path, false);
@@ -337,6 +362,51 @@ public class SMConfig {
         }
 
         return null;
+    }
+
+    /**
+     * Get long value of key. If it does not exist, returns the default or null.
+     *
+     * @param key The key to retrieve the value.
+     * @return The key value, default or null.
+     */
+    public static Long getLong(String key) {
+        return getLong(key, getDefaultLong(key));
+    }
+
+    /**
+     * Get long of the default value of a key.
+     *
+     * @param path The key to retrieve the default value.
+     * @return The key value or null.
+     */
+    public static Long getDefaultLong(String path) {
+        YamlDocument defaults = getDefaultFile(path);
+        String key = getKeyFromPath(path);
+
+        if (defaults != null) {
+            return defaults.getLong(key);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get long value of key. If it does not exist, returns defValue or null.
+     *
+     * @param path The key to retrieve the value.
+     * @param defValue The default value to return if not existent.
+     * @return The key value or defValue.
+     */
+    public static Long getLong(String path, Long defValue) {
+        YamlDocument file = getFile(path);
+        String key = getKeyFromPath(path);
+
+        if (file != null) {
+            return file.getLong(key, defValue);
+        }
+
+        return defValue;
     }
 
     /**

@@ -2,7 +2,6 @@ package com.stemcraft.commands;
 
 import com.stemcraft.*;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.PlayerInventory;
 
 public class SMCommandSpeed extends SMCommand {
 

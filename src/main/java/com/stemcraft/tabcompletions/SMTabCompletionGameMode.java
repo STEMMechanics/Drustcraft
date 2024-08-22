@@ -1,14 +1,10 @@
 package com.stemcraft.tabcompletions;
 
 import com.stemcraft.SMTabCompletion;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 public class SMTabCompletionGameMode extends SMTabCompletion<GameMode> {

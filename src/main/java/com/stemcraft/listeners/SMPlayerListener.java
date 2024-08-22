@@ -32,7 +32,7 @@ public class SMPlayerListener extends SMListener {
 
                 SMPlayer.teleport(event.getPlayer(), Objects.requireNonNull(Bukkit.getWorld("world")).getSpawnLocation());
             } else {
-                SMPlayerState state = smPlayer.getLastState(event.getPlayer().getWorld(), event.getPlayer().getGameMode());
+                SMPlayerState state = SMPlayer.getLastState(event.getPlayer(), event.getPlayer().getWorld(), event.getPlayer().getGameMode());
                 state.restore();
             }
 
@@ -57,7 +57,7 @@ public class SMPlayerListener extends SMListener {
         }
 
         STEMCraft.runLater(() -> {
-            SMPlayerState state = smPlayer.getLastState(player.getWorld(), event.getNewGameMode());
+            SMPlayerState state = SMPlayer.getLastState(player, player.getWorld(), event.getNewGameMode());
             state.restore();
 
             SMSkipNight.update(player.getWorld());
@@ -67,15 +67,17 @@ public class SMPlayerListener extends SMListener {
     @EventHandler
     public void onPlayerTeleports(PlayerTeleportEvent event) {
         if(event.getFrom().getWorld() != Objects.requireNonNull(event.getTo()).getWorld()) {
+            SMPlayer.unfreeze(event.getPlayer());
+
             SMPlayer smPlayer = new SMPlayer(event.getPlayer());
             smPlayer.disableForeverNightVision();
             smPlayer.resetFlySpeed();
             smPlayer.resetWalkSpeed();
 
-            smPlayer.saveState();
+            SMPlayer.saveState(event.getPlayer());
             if(!SMUtilsWorld.getOverworldName(Objects.requireNonNull(event.getFrom().getWorld()).getName()).equalsIgnoreCase(SMUtilsWorld.getOverworldName(Objects.requireNonNull(event.getTo().getWorld()).getName()))) {
                 STEMCraft.runLater(() -> {
-                    SMPlayerState state = smPlayer.getLastState(event.getTo().getWorld(), event.getPlayer().getGameMode());
+                    SMPlayerState state = SMPlayer.getLastState(event.getPlayer(), event.getTo().getWorld(), event.getPlayer().getGameMode());
                     state.restore();
                     updateGameMode(event.getPlayer(), event.getTo().getWorld());
                 });
@@ -89,8 +91,7 @@ public class SMPlayerListener extends SMListener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        SMPlayer smPlayer = new SMPlayer(event.getPlayer());
-        smPlayer.saveState();
+        SMPlayer.saveState(event.getPlayer());
         SMSkipNight.update(event.getPlayer().getWorld());
     }
 

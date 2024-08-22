@@ -238,4 +238,11 @@ public class SMUtilsString {
             return false;
         }
     }
+
+    public static String formatDuration(Long duration) {
+        long seconds = duration / 1000;
+        long minutes = seconds / 60;
+        seconds = seconds % 60;
+        return String.format("%d:%02d", minutes, seconds);
+    }
 }

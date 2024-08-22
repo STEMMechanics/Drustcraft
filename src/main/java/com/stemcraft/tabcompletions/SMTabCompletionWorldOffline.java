@@ -2,7 +2,6 @@ package com.stemcraft.tabcompletions;
 
 import com.stemcraft.SMTabCompletion;
 import com.stemcraft.SMWorld;
-import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.util.ArrayList;

@@ -1,5 +1,6 @@
 package com.stemcraft.utils;
 
+import com.stemcraft.SMConfig;
 import com.stemcraft.STEMCraft;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -215,5 +216,42 @@ public class SMUtilsLocation {
     @SuppressWarnings("SameParameterValue")
     private static <T extends Number> T parseNumber(Object value, Class<T> clazz) {
         return parseNumber(value, clazz, null);
+    }
+
+    public static Location fromConfig(String path, World world) {
+        HashMap<String, ?> map = SMConfig.getMap(path);
+
+        Object x = map.get("x");
+        Object y = map.get("y");
+        Object z = map.get("z");
+
+        if(!(x instanceof Integer) || !(y instanceof Integer) || !(z instanceof Integer)) {
+            return null;
+        }
+
+        World locationWorld = world;
+        if(locationWorld == null) {
+            Object worldName = map.get("world");
+            if(!(worldName instanceof String)) {
+                return null;
+            }
+
+            locationWorld = Bukkit.getWorld((String) worldName);
+            if(locationWorld == null) {
+                return null;
+            }
+        }
+
+        return new Location(locationWorld, (int)x, (int)y, (int)z);
+    }
+
+    public static void toConfig(String path, Location location) {
+        HashMap<String, Object> map = new HashMap<>();
+
+        map.put("world", location.getWorld().getName());
+        map.put("x", location.getBlockX());
+        map.put("y", location.getBlockY());
+        map.put("z", location.getBlockZ());
+        SMConfig.set(path, map);
     }
 }

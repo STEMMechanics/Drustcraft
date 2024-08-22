@@ -2,8 +2,6 @@ package com.stemcraft.commands;
 
 import com.stemcraft.*;
 import com.stemcraft.timers.SMTimerCoord;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.PlayerInventory;
 
 public class SMCommandCoord extends SMCommand {
 

@@ -41,7 +41,7 @@ public class SMCommandWorld extends SMCommand {
             return;
         }
 
-        String action = ctx.args.shift("create|delete|list|load|unload|teleport");
+        String action = ctx.args.shift("create|delete|list|load|unload|teleport|set");
         if(action == null) {
             ctx.usage();
         } else if(action.equalsIgnoreCase("load")) {
