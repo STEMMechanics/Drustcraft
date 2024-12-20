@@ -113,7 +113,6 @@ public class SMMiniGameBlockRun extends SMMiniGame {
 
             // arena is ready!
             arena.setStatus(SMMiniGameArena.STATUS_WAITING_PLAYERS);
-        }
     }
 
     private void addToScore(String configPath, Player player, Integer score) {
