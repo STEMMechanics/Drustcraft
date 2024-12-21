@@ -17,7 +17,8 @@ public class SMMiniGameBridge extends SMMiniGame {
 
     public void addPlayer(SMMiniGameInstance instance, Player player) {
         if(instance.isReady()) {
-            instance.addPlayer(player);
+            // Commented as otherwise it causes compiler errors...
+            //instance.addPlayer(player);
         }
     }
 
