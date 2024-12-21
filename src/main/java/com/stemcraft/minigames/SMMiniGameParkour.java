@@ -152,7 +152,7 @@ public class SMMiniGameParkour extends SMMiniGame {
             SMMessenger.send(SMMessenger.MessageType.INFO, player, "Arena spawn location updated");
             return true;
         } else if(option.equalsIgnoreCase("end")) {
-            SMRegion region = SMWorldEdit.getSelection(player);
+            SMRegion region = new SMRegion(SMWorldEdit.getSelection(player));
             if(region == null) {
                 SMMessenger.send(SMMessenger.MessageType.ERROR, player, "You need to select a region with /wand first");
             } else {
