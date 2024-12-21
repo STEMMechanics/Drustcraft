@@ -22,7 +22,7 @@ public class SMMiniGameParkour extends SMMiniGame {
         arenaUsesLobby = false;
 
         addSetOption("end", (arena, player) -> {
-            SMRegion end = SMWorldEdit.getSelection(player);
+            SMRegion end = new SMRegion(SMWorldEdit.getSelection(player));
             if(end == null) {
                 SMMessenger.send(SMMessenger.MessageType.ERROR, player, "You need to have a world edit selection before running this command");
             } else {
