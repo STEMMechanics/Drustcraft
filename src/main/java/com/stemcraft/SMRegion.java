@@ -624,4 +624,10 @@ public class SMRegion {
     private static double randomBetween(double min, double max) {
         return min + (max - min) * random.nextDouble();
     }
+
+
+    // TODO: Implement and order properly
+    public boolean getAllowDrops() {
+        return true;
+    }
 }
