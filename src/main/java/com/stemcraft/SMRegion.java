@@ -32,6 +32,7 @@ public class SMRegion {
     private boolean valid;
     @Getter
     private World world;
+    private boolean allowDrops;
 
 //    private List<PlayerEnterCallback> enterCallbackList = new ArrayList<>();
 //    private List<PlayerExitCallback> exitCallbackList = new ArrayList<>();
@@ -628,6 +629,6 @@ public class SMRegion {
 
     // TODO: Implement and order properly
     public boolean getAllowDrops() {
-        return true;
+        return allowDrops;
     }
 }
