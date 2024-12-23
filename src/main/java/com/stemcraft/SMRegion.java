@@ -33,7 +33,7 @@ public class SMRegion {
     @Getter
     private World world;
 
-    @FunctionalInterfaxe
+    @FunctionalInterface
     public interface PlayerEnterCallback {
         void onEnter(Player player);
     }
