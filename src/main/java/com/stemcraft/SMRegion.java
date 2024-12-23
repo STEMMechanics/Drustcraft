@@ -33,10 +33,10 @@ public class SMRegion {
     @Getter
     private World world;
 
-    private List<PlayerEnterCallback> enterCallbackList = new ArrayList<>();
-    private List<PlayerExitCallback> exitCallbackList = new ArrayList<>();
-    private List<BlockBreakCallback> blockBreakCallbackList = new ArrayList<>();
-    private List<BlockPlaceCallback> blockPlaceCallbackList = new ArrayList<>();
+    //private List<PlayerEnterCallback> enterCallbackList = new ArrayList<>();
+    //private List<PlayerExitCallback> exitCallbackList = new ArrayList<>();
+    //private List<BlockBreakCallback> blockBreakCallbackList = new ArrayList<>();
+    //private List<BlockPlaceCallback> blockPlaceCallbackList = new ArrayList<>();
 
     private Location teleportEnter;
     private Location teleportExit;
@@ -138,21 +138,21 @@ public class SMRegion {
 
 
 
-    public void onPlayerEnter(PlayerEnterCallback callback) {
-        enterCallbackList.add(callback);
-    }
+    //public void onPlayerEnter(PlayerEnterCallback callback) {
+    //    enterCallbackList.add(callback);
+    //}
 
-    public void onPlayerExit(PlayerExitCallback callback) {
-        exitCallbackList.add(callback);
-    }
+    //public void onPlayerExit(PlayerExitCallback callback) {
+    //    exitCallbackList.add(callback);
+    //}
 
-    public void onBlockBreak(BlockBreakCallback callback) {
-        blockBreakCallbackList.add(callback);
-    }
+    //public void onBlockBreak(BlockBreakCallback callback) {
+    //    blockBreakCallbackList.add(callback);
+    //}
 
-    public void onBlockPlace(BlockPlaceCallback callback) {
-        blockPlaceCallbackList.add(callback);
-    }
+    //public void onBlockPlace(BlockPlaceCallback callback) {
+    //    blockPlaceCallbackList.add(callback);
+    //}
 
     private void handlePlayerEnter(Player player) {
         enterCallbackList.forEach(cb -> {
