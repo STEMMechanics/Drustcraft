@@ -32,20 +32,19 @@ public class SMRegion {
     private boolean valid;
     @Getter
     private World world;
-    private boolean allowDrops;
 
-//    private List<PlayerEnterCallback> enterCallbackList = new ArrayList<>();
-//    private List<PlayerExitCallback> exitCallbackList = new ArrayList<>();
-//    private List<BlockBreakCallback> blockBreakCallbackList = new ArrayList<>();
-//    private List<BlockPlaceCallback> blockPlaceCallbackList = new ArrayList<>();
-//
-//    private Location teleportEnter;
-//    private Location teleportExit;
-//    private Boolean allowDrops;
-//    private Boolean allowBlockBreak;
-//    private Boolean allowBlockPlace;
+    private List<PlayerEnterCallback> enterCallbackList = new ArrayList<>();
+    private List<PlayerExitCallback> exitCallbackList = new ArrayList<>();
+    private List<BlockBreakCallback> blockBreakCallbackList = new ArrayList<>();
+    private List<BlockPlaceCallback> blockPlaceCallbackList = new ArrayList<>();
 
-//    private static final Random random = new Random();
+    private Location teleportEnter;
+    private Location teleportExit;
+    private Boolean allowDrops;
+    private Boolean allowBlockBreak;
+    private Boolean allowBlockPlace;
+
+    private static final Random random = new Random();
 
     /**
      * Constructor
