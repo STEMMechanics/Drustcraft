@@ -58,8 +58,8 @@ public class SMRegion {
     private List<BlockBreakCallback> blockBreakCallbackList = new ArrayList<>();
     private List<BlockPlaceCallback> blockPlaceCallbackList = new ArrayList<>();
 
-    private Location teleportEnter;
-    private Location teleportExit;
+    public Location teleportEnter;
+    public Location teleportExit;
     private Boolean allowDrops;
     private Boolean allowBlockBreak;
     private Boolean allowBlockPlace;
