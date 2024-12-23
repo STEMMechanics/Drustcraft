@@ -138,53 +138,53 @@ public class SMRegion {
 
 
 
-//    public void onPlayerEnter(PlayerEnterCallback callback) {
-//        enterCallbackList.add(callback);
-//    }
-//
-//    public void onPlayerExit(PlayerExitCallback callback) {
-//        exitCallbackList.add(callback);
-//    }
-//
-//    public void onBlockBreak(BlockBreakCallback callback) {
-//        blockBreakCallbackList.add(callback);
-//    }
-//
-//    public void onBlockPlace(BlockPlaceCallback callback) {
-//        blockPlaceCallbackList.add(callback);
-//    }
+    public void onPlayerEnter(PlayerEnterCallback callback) {
+        enterCallbackList.add(callback);
+    }
 
-//    private void handlePlayerEnter(Player player) {
-//        enterCallbackList.forEach(cb -> {
-//            cb.onEnter(player);
-//        });
-//    }
-//
-//    private void handlePlayerExit(Player player) {
-//        exitCallbackList.forEach(cb -> {
-//            cb.onExit(player);
-//        });
-//    }
-//
-//    public boolean handleBlockBreak(Block block, Player player) {
-//        for(BlockBreakCallback cb : blockBreakCallbackList) {
-//            if(cb.onBlockBreak(block, player)) {
-//                return true;
-//            }
-//        }
-//
-//        return !allowBlockBreak;
-//    }
-//
-//    public boolean handleBlockPlace(Block block, Player player) {
-//        for(BlockPlaceCallback cb : blockPlaceCallbackList) {
-//            if(cb.onBlockPlace(block, player)) {
-//                return true;
-//            }
-//        }
-//
-//        return !allowBlockPlace;
-//    }
+    public void onPlayerExit(PlayerExitCallback callback) {
+        exitCallbackList.add(callback);
+    }
+
+    public void onBlockBreak(BlockBreakCallback callback) {
+        blockBreakCallbackList.add(callback);
+    }
+
+    public void onBlockPlace(BlockPlaceCallback callback) {
+        blockPlaceCallbackList.add(callback);
+    }
+
+    private void handlePlayerEnter(Player player) {
+        enterCallbackList.forEach(cb -> {
+            cb.onEnter(player);
+        });
+    }
+
+    private void handlePlayerExit(Player player) {
+        exitCallbackList.forEach(cb -> {
+            cb.onExit(player);
+        });
+    }
+
+    public boolean handleBlockBreak(Block block, Player player) {
+        for(BlockBreakCallback cb : blockBreakCallbackList) {
+            if(cb.onBlockBreak(block, player)) {
+                return true;
+            }
+        }
+
+        return !allowBlockBreak;
+    }
+
+    public boolean handleBlockPlace(Block block, Player player) {
+        for(BlockPlaceCallback cb : blockPlaceCallbackList) {
+            if(cb.onBlockPlace(block, player)) {
+                return true;
+            }
+        }
+
+        return !allowBlockPlace;
+    }
 
     public boolean setName(String newName) {
         String oldName = name;
