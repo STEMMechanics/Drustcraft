@@ -17,7 +17,7 @@ import java.util.*;
 @Getter
 public class SMRegion {
     private static HashMap<Player, List<SMRegion>> playerRegionList = new HashMap<>();
-    private static List<SMRegion> regionList = new List<>();
+    private static List<SMRegion> regionList = new ArrayList<>();
 
     public static final String TYPE_CUBOID = "cuboid";
     public static final String TYPE_POLY2D = "poly2d";
